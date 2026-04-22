@@ -111,19 +111,9 @@ export function useClaudeQuotaQuery(deps: UseClaudeQuotaQueryDeps = {}) {
     idleThreshold = 30_000,
   } = deps
 
-  const isConnected = isClaudeOAuthValid()
-
   return useActivityQuery({
     queryKey: claudeQuotaQueryKeys.current(),
-    queryFn: () => {
-      // Get credentials inside queryFn to avoid stale closures
-      const credentials = getClaudeOAuthCredentials()
-      if (!credentials?.accessToken) {
-        throw new Error('No Claude OAuth credentials')
-      }
-      return fetchClaudeQuota(credentials.accessToken, logger)
-    },
-    enabled: enabled && isConnected && !IS_FREEBUFF,
+    enabled: false,
     staleTime: 30 * 1000, // Consider data stale after 30 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes
     retry: 1, // Only retry once on failure

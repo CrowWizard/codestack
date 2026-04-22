@@ -86,9 +86,6 @@ export type ChatKeyboardHandlers = {
 
   // Toggle all handler
   onToggleAll: () => void
-
-  // Out of credits handler
-  onOpenBuyCredits: () => void
 }
 
 /**
@@ -205,7 +202,7 @@ function dispatchAction(
       return true
     case 'paste': {
       const cwd = getProjectRoot() ?? process.cwd()
-      
+
       // First, check if clipboard contains a copied file (e.g., from Finder)
       // This is different from text - it's when you Cmd+C a file in Finder
       const copiedFilePath = readClipboardFilePath()
@@ -223,7 +220,7 @@ function dispatchAction(
           // Fall through to other paste handlers
         }
       }
-      
+
       // Next, read clipboard text to check if it's a file path
       // This handles the case where a file is dragged/dropped - we want to use
       // the file path, not any stale image data that might be in the clipboard
@@ -237,14 +234,14 @@ function dispatchAction(
           return true
         }
       }
-      
+
       // Check for actual image data in clipboard (screenshots, copied images)
       // This comes AFTER the file path check so dragged files take priority
       if (hasClipboardImage()) {
         handlers.onPasteImage()
         return true
       }
-      
+
       // Regular text paste
       if (text) {
         handlers.onPasteText(text)
@@ -260,9 +257,6 @@ function dispatchAction(
       return true
     case 'toggle-all':
       handlers.onToggleAll()
-      return true
-    case 'open-buy-credits':
-      handlers.onOpenBuyCredits()
       return true
     case 'none':
       return false

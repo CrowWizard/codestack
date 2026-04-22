@@ -30,20 +30,17 @@ describe('bash command', () => {
       inputValue: '/bash',
       isChainInProgressRef: { current: false },
       isStreaming: false,
-      logoutMutation: {} as RouterParams['logoutMutation'],
       streamMessageIdRef: { current: null },
-      addToQueue: mock(() => {}),
-      clearMessages: mock(() => {}),
-      saveToHistory: mock(() => {}),
-      scrollToLatest: mock(() => {}),
-      sendMessage: mock(async () => {}),
-      setCanProcessQueue: mock(() => {}),
-      setInputFocused: mock(() => {}),
-      setInputValue: mock(() => {}),
-      setIsAuthenticated: mock(() => {}),
-      setMessages: mock(() => {}),
-      setUser: mock(() => {}),
-      stopStreaming: mock(() => {}),
+      addToQueue: mock(() => { }),
+      clearMessages: mock(() => { }),
+      saveToHistory: mock(() => { }),
+      scrollToLatest: mock(() => { }),
+      sendMessage: mock(async () => { }),
+      setCanProcessQueue: mock(() => { }),
+      setInputFocused: mock(() => { }),
+      setInputValue: mock(() => { }),
+      setMessages: mock(() => { }),
+      stopStreaming: mock(() => { }),
       ...overrides,
     })
 
@@ -77,7 +74,7 @@ describe('bash command', () => {
     })
 
     test('/bash with args saves command WITH ! prefix to history', () => {
-      const saveToHistory = mock(() => {})
+      const saveToHistory = mock(() => { })
       const bashCommand = findCommand('bash')
       const params = createMockParams({ saveToHistory })
 
@@ -88,7 +85,7 @@ describe('bash command', () => {
     })
 
     test('/bash with no args saves original input to history', () => {
-      const saveToHistory = mock(() => {})
+      const saveToHistory = mock(() => { })
       const bashCommand = findCommand('bash')
       const params = createMockParams({
         inputValue: '/bash',
@@ -102,7 +99,7 @@ describe('bash command', () => {
     })
 
     test('/bash with args clears input', () => {
-      const setInputValue = mock(() => {})
+      const setInputValue = mock(() => { })
       const bashCommand = findCommand('bash')
       const params = createMockParams({ setInputValue })
 
@@ -298,25 +295,22 @@ describe('bash command', () => {
       inputValue: '/bash',
       isChainInProgressRef: { current: false },
       isStreaming: false,
-      logoutMutation: {} as RouterParams['logoutMutation'],
       streamMessageIdRef: { current: null },
-      addToQueue: mock(() => {}),
-      clearMessages: mock(() => {}),
-      saveToHistory: mock(() => {}),
-      scrollToLatest: mock(() => {}),
-      sendMessage: mock(async () => {}),
-      setCanProcessQueue: mock(() => {}),
-      setInputFocused: mock(() => {}),
-      setInputValue: mock(() => {}),
-      setIsAuthenticated: mock(() => {}),
-      setMessages: mock(() => {}),
-      setUser: mock(() => {}),
-      stopStreaming: mock(() => {}),
+      addToQueue: mock(() => { }),
+      clearMessages: mock(() => { }),
+      saveToHistory: mock(() => { }),
+      scrollToLatest: mock(() => { }),
+      sendMessage: mock(async () => { }),
+      setCanProcessQueue: mock(() => { }),
+      setInputFocused: mock(() => { }),
+      setInputValue: mock(() => { }),
+      setMessages: mock(() => { }),
+      stopStreaming: mock(() => { }),
       ...overrides,
     })
 
     test('/bash with pipe characters preserves them', () => {
-      const saveToHistory = mock(() => {})
+      const saveToHistory = mock(() => { })
       const bashCommand = findCommand('bash')
       const params = createMockParams({ saveToHistory })
 
@@ -326,7 +320,7 @@ describe('bash command', () => {
     })
 
     test('/bash with quoted arguments preserves them', () => {
-      const saveToHistory = mock(() => {})
+      const saveToHistory = mock(() => { })
       const bashCommand = findCommand('bash')
       const params = createMockParams({ saveToHistory })
 
@@ -336,7 +330,7 @@ describe('bash command', () => {
     })
 
     test('/bash with redirection operators preserves them', () => {
-      const saveToHistory = mock(() => {})
+      const saveToHistory = mock(() => { })
       const bashCommand = findCommand('bash')
       const params = createMockParams({ saveToHistory })
 
@@ -348,7 +342,7 @@ describe('bash command', () => {
     })
 
     test('/bash with environment variables preserves them', () => {
-      const saveToHistory = mock(() => {})
+      const saveToHistory = mock(() => { })
       const bashCommand = findCommand('bash')
       const params = createMockParams({ saveToHistory })
 
@@ -358,7 +352,7 @@ describe('bash command', () => {
     })
 
     test('/bash with semicolon command chaining preserves it', () => {
-      const saveToHistory = mock(() => {})
+      const saveToHistory = mock(() => { })
       const bashCommand = findCommand('bash')
       const params = createMockParams({ saveToHistory })
 
@@ -368,7 +362,7 @@ describe('bash command', () => {
     })
 
     test('/bash with && command chaining preserves it', () => {
-      const saveToHistory = mock(() => {})
+      const saveToHistory = mock(() => { })
       const bashCommand = findCommand('bash')
       const params = createMockParams({ saveToHistory })
 

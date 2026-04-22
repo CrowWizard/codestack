@@ -56,10 +56,10 @@ export const mockFileContext: ProjectFileContext = {
 export const testFileContext: ProjectFileContext = mockFileContext
 
 export const testLogger = {
-  debug: () => {},
-  error: () => {},
-  info: () => {},
-  warn: () => {},
+  debug: () => { },
+  error: () => { },
+  info: () => { },
+  warn: () => { },
 }
 
 export const testFetch = Object.assign(
@@ -77,11 +77,6 @@ export const testClientEnv = {
   NEXT_PUBLIC_CB_ENVIRONMENT: 'test' as const,
   NEXT_PUBLIC_CODEBUFF_APP_URL: 'https://test.codebuff.com',
   NEXT_PUBLIC_SUPPORT_EMAIL: 'support@codebuff.test',
-  NEXT_PUBLIC_POSTHOG_API_KEY: 'test-posthog-key',
-  NEXT_PUBLIC_POSTHOG_HOST_URL: 'https://test.posthog.com',
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: 'pk_test_123',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL: 'https://test.stripe.com/portal',
-  NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION_ID: undefined,
   NEXT_PUBLIC_WEB_PORT: 3000,
 }
 
@@ -98,7 +93,7 @@ export const testCiEnv = {
 export const TEST_AGENT_RUNTIME_IMPL = Object.freeze({
   clientEnv: testClientEnv,
   ciEnv: testCiEnv,
-  trackEvent: () => {},
+  trackEvent: () => { },
   logger: testLogger,
   fetch: testFetch,
   getUserInfoFromApiKey: async <T extends string>({
@@ -118,12 +113,12 @@ export const TEST_AGENT_RUNTIME_IMPL = Object.freeze({
     return Object.fromEntries(
       fields.map((field) => [field, user[field as keyof typeof user]]),
     ) as {
-      [K in T]: (typeof user)[K & keyof typeof user]
-    }
+        [K in T]: (typeof user)[K & keyof typeof user]
+      }
   },
   fetchAgentFromDatabase: async () => null,
   startAgentRun: async () => 'test-agent-run-id',
-  finishAgentRun: async () => {},
+  finishAgentRun: async () => { },
   addAgentStep: async () => 'test-agent-step-id',
   consumeCreditsWithFallback: async () => {
     throw new Error(
@@ -234,12 +229,12 @@ export function createTestAgentRuntimeParams(
     localAgentTemplates: overrides.localAgentTemplates ?? {
       'test-agent': agentTemplate,
     },
-    sendAction: overrides.sendAction ?? mock(() => {}),
+    sendAction: overrides.sendAction ?? mock(() => { }),
     requestFiles: overrides.requestFiles ?? mock(async () => ({})),
     requestToolCall:
       overrides.requestToolCall ??
       mock(async () => ({ success: true, result: 'mock result' })),
-    onResponseChunk: overrides.onResponseChunk ?? mock(() => {}),
+    onResponseChunk: overrides.onResponseChunk ?? mock(() => { }),
     fileContext: overrides.fileContext ?? mockFileContext,
     promptAiSdkStream:
       overrides.promptAiSdkStream ??
@@ -258,10 +253,10 @@ export function createTestAgentRuntimeParams(
       overrides.promptAiSdkStructured ?? mock(async () => promptSuccess({})),
     requestMcpToolData: overrides.requestMcpToolData ?? mock(async () => ({})),
     startAgentRun: overrides.startAgentRun ?? mock(async () => 'test-run-id'),
-    finishAgentRun: overrides.finishAgentRun ?? mock(async () => {}),
+    finishAgentRun: overrides.finishAgentRun ?? mock(async () => { }),
     addAgentStep: overrides.addAgentStep ?? mock(async () => 'test-step-id'),
     logger: overrides.logger ?? testLogger,
-    trackEvent: overrides.trackEvent ?? mock(() => {}),
+    trackEvent: overrides.trackEvent ?? mock(() => { }),
     clientEnv: overrides.clientEnv ?? testClientEnv,
     ciEnv: overrides.ciEnv ?? testCiEnv,
     apiKey: overrides.apiKey ?? 'test-api-key',
@@ -270,17 +265,17 @@ export function createTestAgentRuntimeParams(
       overrides.fetchAgentFromDatabase ?? mock(async () => null),
     databaseAgentCache: overrides.databaseAgentCache ?? new Map<string, null>(),
     consumeCreditsWithFallback:
-      overrides.consumeCreditsWithFallback ?? mock(async () => {}),
+      overrides.consumeCreditsWithFallback ?? mock(async () => { }),
     getUserInfoFromApiKey:
       overrides.getUserInfoFromApiKey ??
       mock(async () => ({
         id: 'test-user-id',
         email: 'test@example.com',
       })),
-    handleStepsLogChunk: overrides.handleStepsLogChunk ?? mock(() => {}),
+    handleStepsLogChunk: overrides.handleStepsLogChunk ?? mock(() => { }),
     requestOptionalFile:
       overrides.requestOptionalFile ?? mock(async () => null),
-    sendSubagentChunk: overrides.sendSubagentChunk ?? mock(() => {}),
+    sendSubagentChunk: overrides.sendSubagentChunk ?? mock(() => { }),
     ...overrides,
   }
 }
@@ -290,13 +285,13 @@ export function createTestAgentRuntimeDeps(): Omit<
   'agentTemplate' | 'localAgentTemplates'
 > {
   return {
-    sendAction: mock(() => {}),
+    sendAction: mock(() => { }),
     requestFiles: mock(async () => ({})),
     requestToolCall: mock(async () => ({
       success: true,
       result: 'mock result',
     })),
-    onResponseChunk: mock(() => {}),
+    onResponseChunk: mock(() => { }),
     fileContext: mockFileContext,
     promptAiSdkStream: mock(async function* () {
       yield { type: 'text' as const, text: 'Mock response\n\n' }
@@ -312,23 +307,23 @@ export function createTestAgentRuntimeDeps(): Omit<
     promptAiSdkStructured: mock(async () => promptSuccess({})),
     requestMcpToolData: mock(async () => ({})),
     startAgentRun: mock(async () => 'test-run-id'),
-    finishAgentRun: mock(async () => {}),
+    finishAgentRun: mock(async () => { }),
     addAgentStep: mock(async () => 'test-step-id'),
     logger: testLogger,
-    trackEvent: mock(() => {}),
+    trackEvent: mock(() => { }),
     clientEnv: testClientEnv,
     ciEnv: testCiEnv,
     apiKey: 'test-api-key',
     fetch: testFetch,
     fetchAgentFromDatabase: mock(async () => null),
     databaseAgentCache: new Map<string, null>(),
-    consumeCreditsWithFallback: mock(async () => {}),
+    consumeCreditsWithFallback: mock(async () => { }),
     getUserInfoFromApiKey: mock(async () => ({
       id: 'test-user-id',
       email: 'test@example.com',
     })),
-    handleStepsLogChunk: mock(() => {}),
+    handleStepsLogChunk: mock(() => { }),
     requestOptionalFile: mock(async () => null),
-    sendSubagentChunk: mock(() => {}),
+    sendSubagentChunk: mock(() => { }),
   }
 }

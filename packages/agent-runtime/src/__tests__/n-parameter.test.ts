@@ -1,4 +1,4 @@
-import * as analytics from '@codebuff/common/analytics'
+
 import { TEST_USER_ID } from '@codebuff/common/old-constants'
 import { createTestAgentRuntimeParams } from '@codebuff/common/testing/fixtures/agent-runtime'
 import { getInitialSessionState } from '@codebuff/common/types/session-state'
@@ -50,7 +50,7 @@ describe('n parameter and GENERATE_N functionality', () => {
     }
 
     // Mock analytics
-    spyOn(analytics, 'trackEvent').mockImplementation(() => {})
+    agentRuntimeImpl.trackEvent = mock(() => {})
 
     // Mock crypto.randomUUID
     spyOn(crypto, 'randomUUID').mockImplementation(

@@ -76,12 +76,6 @@ export function useUserDetailsQuery<T extends UserField>({
 
   return useQuery({
     queryKey: userDetailsQueryKeys.fields(fields),
-    queryFn: async () => {
-      if (!authToken) {
-        throw new Error('No auth token available')
-      }
-      return fetchUserDetails({ authToken, fields, logger })
-    },
     enabled: enabled && !!authToken,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes

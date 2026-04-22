@@ -13,7 +13,6 @@ export interface Organization {
   slug: string
   description?: string
   owner_id: string
-  stripe_customer_id?: string
   created_at: Date
   updated_at: Date
 }
@@ -63,9 +62,6 @@ export interface OrganizationDetailsResponse {
   userRole: 'owner' | 'admin' | 'member'
   memberCount: number
   repositoryCount: number
-  creditBalance: number
-  hasStripeSubscription?: boolean
-  stripeSubscriptionId?: string
 }
 
 export interface InviteMemberRequest {

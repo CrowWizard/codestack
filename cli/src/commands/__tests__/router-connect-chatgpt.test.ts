@@ -4,9 +4,9 @@ import { useChatStore } from '../../state/chat-store'
 
 import type { RouterParams } from '../command-registry'
 
-const saveToHistory = mock(() => {})
-const setInputValue = mock(() => {})
-const setMessages = mock(() => {})
+const saveToHistory = mock(() => { })
+const setInputValue = mock(() => { })
+const setMessages = mock(() => { })
 const handleChatGptAuthCode = mock(async () => ({
   success: true,
   message: 'ok',
@@ -44,20 +44,17 @@ describe('routeUserPrompt connect:chatgpt mode', () => {
       inputValue: 'auth-code-123',
       isChainInProgressRef: { current: false },
       isStreaming: false,
-      logoutMutation: {} as RouterParams['logoutMutation'],
       streamMessageIdRef: { current: null },
-      addToQueue: () => {},
-      clearMessages: () => {},
+      addToQueue: () => { },
+      clearMessages: () => { },
       saveToHistory,
-      scrollToLatest: () => {},
-      sendMessage: async () => {},
-      setCanProcessQueue: () => {},
-      setInputFocused: () => {},
+      scrollToLatest: () => { },
+      sendMessage: async () => { },
+      setCanProcessQueue: () => { },
+      setInputFocused: () => { },
       setInputValue,
-      setIsAuthenticated: () => {},
       setMessages,
-      setUser: () => {},
-      stopStreaming: () => {},
+      stopStreaming: () => { },
     } satisfies RouterParams
 
     await routeUserPrompt(params)

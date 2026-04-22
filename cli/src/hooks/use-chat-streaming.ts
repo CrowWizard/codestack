@@ -7,7 +7,6 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useState, useTransition } from 'react'
 
 
-import { authQueryKeys } from './use-auth-query'
 import { useConnectionStatus } from './use-connection-status'
 import { useElapsedTime } from './use-elapsed-time'
 import { useExitHandler } from './use-exit-handler'
@@ -35,10 +34,6 @@ export interface UseChatStreamingOptions {
 }
 
 export interface UseChatStreamingReturn {
-  // Connection state
-  isConnected: boolean
-  showReconnectionMessage: boolean
-
   // Timer
   mainAgentTimer: ElapsedTimeTracker
   timerStartTime: number | null
@@ -85,38 +80,6 @@ export function useChatStreaming({
   activeAgentStreamsRef,
   sendMessageRef,
 }: UseChatStreamingOptions): UseChatStreamingReturn {
-  const queryClient = useQueryClient()
-  const [, startUiTransition] = useTransition()
-
-  // Reconnection state
-  const [showReconnectionMessage, setShowReconnectionMessage] = useState(false)
-  const reconnectionTimeout = useTimeout()
-
-  // Reconnection handler
-  const handleReconnection = useCallback(
-    (isInitialConnection: boolean) => {
-      queryClient.invalidateQueries({ queryKey: authQueryKeys.all })
-
-      startUiTransition(() => {
-        if (!isInitialConnection) {
-          setShowReconnectionMessage(true)
-          reconnectionTimeout.setTimeout(
-            'reconnection-message',
-            () => {
-              startUiTransition(() => {
-                setShowReconnectionMessage(false)
-              })
-            },
-            RECONNECTION_MESSAGE_DURATION_MS,
-          )
-        }
-      })
-    },
-    [queryClient, reconnectionTimeout, startUiTransition],
-  )
-
-  // Connection status
-  const isConnected = useConnectionStatus(handleReconnection)
 
   // Timer
   const mainAgentTimer = useElapsedTime()
@@ -193,10 +156,6 @@ export function useChatStreaming({
   const isStreaming = streamStatus !== 'idle'
 
   return {
-    // Connection state
-    isConnected,
-    showReconnectionMessage,
-
     // Timer
     mainAgentTimer,
     timerStartTime,

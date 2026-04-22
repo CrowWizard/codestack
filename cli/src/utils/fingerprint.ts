@@ -10,9 +10,6 @@
 import { createHash, randomBytes } from 'node:crypto'
 import { cpus, networkInterfaces } from 'node:os'
 
-import { AnalyticsEvent } from '@codebuff/common/constants/analytics-events'
-
-import { trackEvent } from './analytics'
 import { detectShell } from './detect-shell'
 import { logger } from './logger'
 
@@ -155,10 +152,6 @@ export async function calculateFingerprint(): Promise<string> {
       },
       'Enhanced CLI fingerprint generated successfully',
     )
-    trackEvent(AnalyticsEvent.FINGERPRINT_GENERATED, {
-      fingerprintType: 'enhanced_cli',
-      success: true,
-    })
     return fingerprint
   } catch (enhancedError) {
     logger.info(
@@ -179,12 +172,6 @@ export async function calculateFingerprint(): Promise<string> {
         },
         'Legacy fingerprint generated successfully as fallback',
       )
-      trackEvent(AnalyticsEvent.FINGERPRINT_GENERATED, {
-        fingerprintType: 'legacy',
-        success: true,
-        fallbackReason:
-          enhancedError instanceof Error ? enhancedError.message : 'unknown',
-      })
       return fingerprint
     } catch (legacyError) {
       logger.error(

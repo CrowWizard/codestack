@@ -5,7 +5,6 @@ import { createRequire } from 'module'
 import os from 'os'
 import path from 'path'
 
-import { AnalyticsEvent } from '@codebuff/common/constants/analytics-events'
 import { getProjectFileTree } from '@codebuff/common/project-file-tree'
 import { createCliRenderer } from '@opentui/core'
 import { createRoot } from '@opentui/react'
@@ -19,11 +18,8 @@ import { cyan, green, red, yellow } from 'picocolors'
 import React from 'react'
 
 import { App } from './app'
-import { handlePublish } from './commands/publish'
-import { runPlainLogin } from './login/plain-login'
 import { initializeApp } from './init/init-app'
 import { getProjectRoot, setProjectRoot } from './project-files'
-import { trackEvent } from './utils/analytics'
 import { getAuthToken, getAuthTokenDetails } from './utils/auth'
 import { resetCodebuffClient } from './utils/codebuff-client'
 import { setApiClientAuthToken } from './utils/codebuff-api'
@@ -203,8 +199,6 @@ async function main(): Promise<void> {
     initialMode,
   } = parseArgs()
 
-  const isLoginCommand = process.argv[2] === 'login'
-  const isPublishCommand = process.argv[2] === 'publish'
   const hasAgentOverride = Boolean(agent?.trim())
 
   await initializeApp({ cwd })
@@ -212,11 +206,6 @@ async function main(): Promise<void> {
   // Set the auth token for the API client
   setApiClientAuthToken(getAuthToken())
 
-  // Handle login command before rendering the app
-  if (isLoginCommand) {
-    await runPlainLogin()
-    return
-  }
 
   // Show project picker only when user starts at the home directory or an ancestor
   const projectRoot = getProjectRoot()
@@ -224,51 +213,8 @@ async function main(): Promise<void> {
   const startCwd = process.cwd()
   const showProjectPicker = shouldShowProjectPicker(startCwd, homeDir)
 
-  // Requires analytics to be initialized, which is done in initializeApp
-  trackEvent(AnalyticsEvent.APP_LAUNCHED, {
-    version: loadPackageVersion(),
-    platform: process.platform,
-    arch: process.arch,
-    hasInitialPrompt: Boolean(initialPrompt),
-    hasAgentOverride: hasAgentOverride,
-    continueChat,
-    initialMode: initialMode ?? 'DEFAULT',
-    isFreeBuff: IS_FREEBUFF,
-  })
-
-  // Initialize agent registry (loads user agents via SDK).
-  // When --agent is provided, skip local .agents to avoid overrides.
-  if (isPublishCommand || !hasAgentOverride) {
-    await initializeAgentRegistry()
-  }
-
   // Initialize skill registry (loads skills from .agents/skills)
   await initializeSkillRegistry()
-
-  // Handle publish command before rendering the app
-  if (isPublishCommand) {
-    const publishIndex = process.argv.indexOf('publish')
-    const agentIds = process.argv.slice(publishIndex + 1)
-    const result = await handlePublish(agentIds)
-
-    if (result.success && result.publisherId && result.agents) {
-      logger.info(green('✅ Successfully published:'))
-      for (const agent of result.agents) {
-        logger.info(
-          cyan(
-            `  - ${agent.displayName} (${result.publisherId}/${agent.id}@${agent.version})`,
-          ),
-        )
-      }
-      process.exit(0)
-    } else {
-      logger.error(red('❌ Publish failed'))
-      if (result.error) logger.error(red(`Error: ${result.error}`))
-      if (result.details) logger.error(red(result.details))
-      if (result.hint) logger.warn(yellow(`Hint: ${result.hint}`))
-      process.exit(1)
-    }
-  }
 
   if (clearLogs) {
     clearLogFile()
@@ -323,14 +269,6 @@ async function main(): Promise<void> {
         // Change process working directory
         process.chdir(newProjectPath)
 
-        // Track directory change (avoid logging full paths for privacy)
-        const isGitRepo = fs.existsSync(path.join(newProjectPath, '.git'))
-        const pathDepth = newProjectPath.split(path.sep).filter(Boolean).length
-        trackEvent(AnalyticsEvent.CHANGE_DIRECTORY, {
-          isGitRepo,
-          pathDepth,
-          isHomeDir: newProjectPath === os.homedir(),
-        })
         // Update the project root in the module state
         setProjectRoot(newProjectPath)
         // Reset client to ensure tools use the updated project root

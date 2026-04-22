@@ -1,4 +1,4 @@
-import * as analytics from '@codebuff/common/analytics'
+
 import { TEST_USER_ID } from '@codebuff/common/old-constants'
 import { createTestAgentRuntimeParams } from '@codebuff/common/testing/fixtures/agent-runtime'
 import {
@@ -73,7 +73,7 @@ describe('loopAgentSteps - runAgentStep vs runProgrammaticStep behavior', () => 
     })
 
     // Mock analytics
-    spyOn(analytics, 'trackEvent').mockImplementation(() => {})
+    agentRuntimeImpl.trackEvent = mock(() => {})
 
     // Mock crypto.randomUUID
     spyOn(crypto, 'randomUUID').mockImplementation(

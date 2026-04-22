@@ -6,7 +6,6 @@ import { Button } from './button'
 import { ScrollToBottomButton } from './scroll-to-bottom-button'
 import { ShimmerText } from './shimmer-text'
 
-import { useFreebuffSessionProgress } from '../hooks/use-freebuff-session-progress'
 import { useTheme } from '../hooks/use-theme'
 import { formatElapsedTime } from '../utils/format-elapsed-time'
 
@@ -73,7 +72,6 @@ interface StatusBarProps {
   statusIndicatorState: StatusIndicatorState
   onStop?: () => void
   onEndSession?: () => void
-  freebuffSession: FreebuffSessionResponse | null
 }
 
 export const StatusBar = ({
@@ -83,7 +81,6 @@ export const StatusBar = ({
   statusIndicatorState,
   onStop,
   onEndSession,
-  freebuffSession,
 }: StatusBarProps) => {
   const theme = useTheme()
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
@@ -122,7 +119,6 @@ export const StatusBar = ({
     return () => clearInterval(interval)
   }, [timerStartTime, shouldShowTimer, statusIndicatorState?.kind])
 
-  const sessionProgress = useFreebuffSessionProgress(freebuffSession)
 
   const renderStatusIndicator = () => {
     switch (statusIndicatorState.kind) {
@@ -174,19 +170,6 @@ export const StatusBar = ({
         return null
 
       case 'idle':
-        if (sessionProgress !== null) {
-          const isUrgent = sessionProgress.remainingMs < COUNTDOWN_VISIBLE_MS
-          const modelName =
-            freebuffSession?.status === 'active'
-              ? getFreebuffModel(freebuffSession.model).displayName
-              : null
-          return (
-            <span fg={isUrgent ? theme.warning : theme.secondary}>
-              {modelName ? `${modelName} · ` : ''}Free session ·{' '}
-              {formatSessionRemaining(sessionProgress.remainingMs)}
-            </span>
-          )
-        }
         return null
     }
   }
@@ -206,7 +189,7 @@ export const StatusBar = ({
   // freebuff session fill is visible (otherwise the fill would float over
   // transparent space).
   const hasContent =
-    statusIndicatorContent || elapsedTimeContent || sessionProgress !== null
+    statusIndicatorContent || elapsedTimeContent
 
   return (
     <box
@@ -220,20 +203,6 @@ export const StatusBar = ({
         backgroundColor: hasContent ? theme.surface : 'transparent',
       }}
     >
-      {sessionProgress !== null && (
-        <box
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            bottom: 0,
-            // Fill anchors left and shrinks as time passes — the draining
-            // bar is the countdown; no separate numeric readout needed.
-            width: `${sessionProgress.fraction * 100}%`,
-            backgroundColor: theme.surfaceHover,
-          }}
-        />
-      )}
       <box
         style={{
           flexGrow: 1,
@@ -263,18 +232,6 @@ export const StatusBar = ({
         {onStop && (statusIndicatorState.kind === 'waiting' || statusIndicatorState.kind === 'streaming') && (
           <StatusActionButton onClick={onStop}>■ Esc</StatusActionButton>
         )}
-        {onEndSession && statusIndicatorState.kind === 'idle' && freebuffSession?.status === 'active' && (
-          <StatusActionButton onClick={onEndSession}>✕ End session</StatusActionButton>
-        )}
-        {sessionProgress !== null &&
-          sessionProgress.remainingMs < COUNTDOWN_VISIBLE_MS &&
-          statusIndicatorState.kind !== 'idle' && (
-            <text style={{ wrapMode: 'none' }}>
-              <span fg={theme.warning} attributes={TextAttributes.BOLD}>
-                {formatCountdown(sessionProgress.remainingMs)}
-              </span>
-            </text>
-          )}
       </box>
     </box>
   )

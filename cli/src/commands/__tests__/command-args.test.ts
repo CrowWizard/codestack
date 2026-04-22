@@ -27,26 +27,23 @@ describe('command factory pattern', () => {
       inputValue: '/test',
       isChainInProgressRef: { current: false },
       isStreaming: false,
-      logoutMutation: {} as RouterParams['logoutMutation'],
       streamMessageIdRef: { current: null },
-      addToQueue: mock(() => {}),
-      clearMessages: mock(() => {}),
-      saveToHistory: mock(() => {}),
-      scrollToLatest: mock(() => {}),
-      sendMessage: mock(async () => {}),
-      setCanProcessQueue: mock(() => {}),
-      setInputFocused: mock(() => {}),
-      setInputValue: mock(() => {}),
-      setIsAuthenticated: mock(() => {}),
-      setMessages: mock(() => {}),
-      setUser: mock(() => {}),
-      stopStreaming: mock(() => {}),
+      addToQueue: mock(() => { }),
+      clearMessages: mock(() => { }),
+      saveToHistory: mock(() => { }),
+      scrollToLatest: mock(() => { }),
+      sendMessage: mock(async () => { }),
+      setCanProcessQueue: mock(() => { }),
+      setInputFocused: mock(() => { }),
+      setInputValue: mock(() => { }),
+      setMessages: mock(() => { }),
+      stopStreaming: mock(() => { }),
       ...overrides,
     }) as RouterParams
 
   describe('defineCommand (gracefully ignores args)', () => {
     test('calls handler when no args provided', () => {
-      const handler = mock(() => {})
+      const handler = mock(() => { })
       const cmd = defineCommand({
         name: 'test',
         handler,
@@ -59,7 +56,7 @@ describe('command factory pattern', () => {
     })
 
     test('calls handler even when args are provided (gracefully ignores)', () => {
-      const handler = mock(() => {})
+      const handler = mock(() => { })
       const cmd = defineCommand({
         name: 'test',
         handler,
@@ -76,7 +73,7 @@ describe('command factory pattern', () => {
       const cmd = defineCommand({
         name: 'test',
         aliases: ['t', 'tst'],
-        handler: () => {},
+        handler: () => { },
       })
 
       expect(cmd.aliases).toEqual(['t', 'tst'])
@@ -85,7 +82,7 @@ describe('command factory pattern', () => {
     test('defaults to empty aliases when not provided', () => {
       const cmd = defineCommand({
         name: 'test',
-        handler: () => {},
+        handler: () => { },
       })
 
       expect(cmd.aliases).toEqual([])
@@ -94,7 +91,7 @@ describe('command factory pattern', () => {
     test('sets acceptsArgs to false', () => {
       const cmd = defineCommand({
         name: 'test',
-        handler: () => {},
+        handler: () => { },
       })
 
       expect(cmd.acceptsArgs).toBe(false)
@@ -103,7 +100,7 @@ describe('command factory pattern', () => {
 
   describe('defineCommandWithArgs', () => {
     test('passes args to handler', () => {
-      const handler = mock(() => {})
+      const handler = mock(() => { })
       const cmd = defineCommandWithArgs({
         name: 'test',
         handler,
@@ -116,7 +113,7 @@ describe('command factory pattern', () => {
     })
 
     test('passes empty args to handler', () => {
-      const handler = mock(() => {})
+      const handler = mock(() => { })
       const cmd = defineCommandWithArgs({
         name: 'test',
         handler,
@@ -132,7 +129,7 @@ describe('command factory pattern', () => {
       const cmd = defineCommandWithArgs({
         name: 'test',
         aliases: ['t', 'tst'],
-        handler: () => {},
+        handler: () => { },
       })
 
       expect(cmd.aliases).toEqual(['t', 'tst'])
@@ -141,7 +138,7 @@ describe('command factory pattern', () => {
     test('sets acceptsArgs to true', () => {
       const cmd = defineCommandWithArgs({
         name: 'test',
-        handler: () => {},
+        handler: () => { },
       })
 
       expect(cmd.acceptsArgs).toBe(true)
@@ -211,10 +208,10 @@ describe('command factory pattern', () => {
       const newCmd = COMMAND_REGISTRY.find((c) => c.name === 'new')
       expect(newCmd).toBeDefined()
 
-      const sendMessage = mock(async () => {})
-      const setMessages = mock(() => {})
-      const clearMessages = mock(() => {})
-      const setCanProcessQueue = mock(() => {})
+      const sendMessage = mock(async () => { })
+      const setMessages = mock(() => { })
+      const clearMessages = mock(() => { })
+      const setCanProcessQueue = mock(() => { })
 
       const params = createMockParams({
         inputValue: '/new hello world',
@@ -242,10 +239,10 @@ describe('command factory pattern', () => {
       const newCmd = COMMAND_REGISTRY.find((c) => c.name === 'new')
       expect(newCmd).toBeDefined()
 
-      const sendMessage = mock(async () => {})
-      const setMessages = mock(() => {})
-      const clearMessages = mock(() => {})
-      const setCanProcessQueue = mock(() => {})
+      const sendMessage = mock(async () => { })
+      const setMessages = mock(() => { })
+      const clearMessages = mock(() => { })
+      const setCanProcessQueue = mock(() => { })
 
       const params = createMockParams({
         inputValue: '/new',

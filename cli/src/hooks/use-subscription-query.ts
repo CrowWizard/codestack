@@ -14,26 +14,6 @@ export const subscriptionQueryKeys = {
   current: () => [...subscriptionQueryKeys.all, 'current'] as const,
 }
 
-export async function fetchSubscriptionData(
-  logger: Logger = defaultLogger,
-): Promise<SubscriptionResponse> {
-  const client = getApiClient()
-  const response = await client.get<SubscriptionResponse>(
-    '/api/user/subscription',
-    { includeCookie: true },
-  )
-
-  if (!response.ok) {
-    logger.debug(
-      { status: response.status },
-      'Failed to fetch subscription data',
-    )
-    throw new Error(`Failed to fetch subscription: ${response.status}`)
-  }
-
-  return response.data!
-}
-
 export interface UseSubscriptionQueryDeps {
   logger?: Logger
   enabled?: boolean
@@ -57,7 +37,6 @@ export function useSubscriptionQuery(deps: UseSubscriptionQueryDeps = {}) {
 
   return useActivityQuery({
     queryKey: subscriptionQueryKeys.current(),
-    queryFn: () => fetchSubscriptionData(logger),
     enabled: enabled && !!authToken && !IS_FREEBUFF,
     staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000,

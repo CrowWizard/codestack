@@ -1,4 +1,4 @@
-import * as analytics from '@codebuff/common/analytics'
+
 import { TEST_USER_ID } from '@codebuff/common/old-constants'
 import { TEST_AGENT_RUNTIME_IMPL } from '@codebuff/common/testing/impl/agent-runtime'
 import { setupDbSpies } from '@codebuff/common/testing/mocks/database'
@@ -69,7 +69,7 @@ describe('runAgentStep - set_output tool', () => {
     dbSpies = setupDbSpies(db)
 
     // Mock analytics
-    spyOn(analytics, 'trackEvent').mockImplementation(() => {})
+    agentRuntimeImpl.trackEvent = mock(() => {})
 
     agentRuntimeImpl.requestFiles = async ({ filePaths }) => {
       const results: Record<string, string | null> = {}

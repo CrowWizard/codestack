@@ -5,17 +5,17 @@ type User = {
   id: string
   email: string
   discord_id: string | null
-  stripe_customer_id: string | null
   banned: boolean
   created_at: Date
+  stripe_customer_id: string | null
 }
 export const userColumns = [
   'id',
   'email',
   'discord_id',
-  'stripe_customer_id',
   'banned',
   'created_at',
+  'stripe_customer_id',
 ] as const
 export type UserColumn = keyof User
 export type GetUserInfoFromApiKeyInput<T extends UserColumn> = {
@@ -25,8 +25,8 @@ export type GetUserInfoFromApiKeyInput<T extends UserColumn> = {
 }
 export type GetUserInfoFromApiKeyOutput<T extends UserColumn> = Promise<
   | {
-      [K in T]: User[K]
-    }
+    [K in T]: User[K]
+  }
   | null
 >
 export type GetUserInfoFromApiKeyFn = <T extends UserColumn>(
@@ -45,8 +45,8 @@ export type GetAgentRunFromIdInput<T extends AgentRunColumn> = {
 }
 export type GetAgentRunFromIdOutput<T extends AgentRunColumn> = Promise<
   | {
-      [K in T]: AgentRun[K]
-    }
+    [K in T]: AgentRun[K]
+  }
   | null
 >
 export type GetAgentRunFromIdFn = <T extends AgentRunColumn>(

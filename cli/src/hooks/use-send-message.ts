@@ -39,7 +39,6 @@ import type { SendMessageFn } from '../types/contracts/send-message'
 import type { AgentMode } from '../utils/constants'
 import type { SendMessageTimerEvent } from '../utils/send-message-timer'
 import type { AgentDefinition, MessageContent, RunState } from '@codebuff/sdk'
-import { isCoveredBySubscription } from '../utils/subscription'
 
 import type { SubscriptionResponse } from './use-subscription-query'
 
@@ -438,11 +437,6 @@ export const useSendMessage = ({
           setIsRetrying,
           onTotalCost: (cost: number) => {
             actualCredits = cost
-            // Only add to session credits if not covered by subscription
-            // (subscription credits are shown separately in the UI)
-            if (!isCoveredBySubscription(subscriptionData)) {
-              addSessionCredits(cost)
-            }
           },
         })
 

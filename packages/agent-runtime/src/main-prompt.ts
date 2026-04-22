@@ -1,5 +1,3 @@
-import { trackEvent } from '@codebuff/common/analytics'
-import { AnalyticsEvent } from '@codebuff/common/constants/analytics-events'
 import { AgentTemplateTypes } from '@codebuff/common/types/session-state'
 
 import { loopAgentSteps } from './run-agent-step'
@@ -68,8 +66,8 @@ export async function mainPrompt(
   // userId comes from params (passed through from loopAgentSteps)
   const userId = (params as { userId?: string }).userId
   if (typeof userId === 'string' && userId.trim() !== '') {
-    trackEvent({
-      event: AnalyticsEvent.USER_INPUT,
+    params.trackEvent({
+      event: 'user_input',
       userId,
       properties: {
         promptId,

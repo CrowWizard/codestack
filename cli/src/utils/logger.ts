@@ -2,19 +2,9 @@ import { appendFileSync, existsSync, mkdirSync, unlinkSync } from 'fs'
 import path, { dirname } from 'path'
 import { format as stringFormat } from 'util'
 
-
-import { AnalyticsEvent } from '@codebuff/common/constants/analytics-events'
 import { env, IS_DEV, IS_TEST, IS_CI } from '@codebuff/common/env'
-import { createAnalyticsDispatcher } from '@codebuff/common/util/analytics-dispatcher'
-import { getAnalyticsEventId } from '@codebuff/common/util/analytics-log'
 import { pino } from 'pino'
 
-import {
-  flushAnalytics,
-  logError,
-  setAnalyticsErrorLogger,
-  trackEvent,
-} from './analytics'
 import { getCurrentChatDir, getProjectRoot } from '../project-files'
 
 export interface LoggerContext {
@@ -33,10 +23,6 @@ let pinoLogger: any = undefined
 
 const loggingLevels = ['info', 'debug', 'warn', 'error', 'fatal'] as const
 type LogLevel = (typeof loggingLevels)[number]
-const analyticsDispatcher = createAnalyticsDispatcher({
-  envName: env.NEXT_PUBLIC_CB_ENVIRONMENT,
-  bufferWhenNoUser: true,
-})
 
 /**
  * Safely stringify an object, handling circular references.
@@ -115,7 +101,7 @@ export function clearLogFile(): void {
   pinoLogger = undefined
 }
 
-function sendAnalyticsAndLog(
+function sendLog(
   level: LogLevel,
   data: any,
   msg?: string,
@@ -143,40 +129,6 @@ function sendAnalyticsAndLog(
   const normalizedMsg = isStringOnly ? (data as string) : msg
   const includeData = normalizedData != null && !isEmptyObject(normalizedData)
 
-  const toTrack = {
-    ...(includeData ? { data: normalizedData } : {}),
-    level,
-    loggerContext,
-    msg: stringFormat(normalizedMsg, ...args),
-  }
-
-  logAsErrorIfNeeded(toTrack)
-
-  if (!IS_DEV && includeData && typeof normalizedData === 'object') {
-    const analyticsPayloads = analyticsDispatcher.process({
-      data: normalizedData,
-      level,
-      msg: stringFormat(normalizedMsg ?? '', ...args),
-      fallbackUserId: loggerContext.userId,
-    })
-
-    analyticsPayloads.forEach((payload) => {
-      trackEvent(payload.event, payload.properties)
-    })
-  }
-
-  // Send all log events to PostHog in production for better observability
-  // Skip if the log already has an eventId (to avoid duplicate tracking)
-  const hasEventId = includeData && getAnalyticsEventId(normalizedData) !== null
-  if (!IS_DEV && !IS_TEST && !IS_CI && !hasEventId) {
-    trackEvent(AnalyticsEvent.CLI_LOG, {
-      level,
-      msg: stringFormat(normalizedMsg ?? '', ...args),
-      ...(includeData ? { data: normalizedData } : {}),
-      ...loggerContext,
-    })
-  }
-
   // In dev mode, use appendFileSync for real-time logging (Bun has issues with pino sync)
   // In prod mode, use pino for better performance
   if (IS_DEV && logPath) {
@@ -199,53 +151,15 @@ function sendAnalyticsAndLog(
   }
 }
 
-function logAsErrorIfNeeded(toTrack: {
-  data?: any
-  level: LogLevel
-  loggerContext: LoggerContext
-  msg: string
-}) {
-  if (toTrack.level === 'error' || toTrack.level === 'fatal') {
-    logError(
-      new Error(toTrack.msg),
-      toTrack.loggerContext.userId ?? 'unknown',
-      { ...(toTrack.data ?? {}), context: toTrack.loggerContext },
-    )
-    flushAnalytics()
-  }
-}
-
 /**
  * Wrapper around Pino logger.
- *
- * To also send to Posthog, set data.eventId to type AnalyticsEvent
- *
- * e.g. logger.info({eventId: AnalyticsEvent.SOME_EVENT, field: value}, 'some message')
  */
 export const logger: Record<LogLevel, pino.LogFn> = Object.fromEntries(
   loggingLevels.map((level) => {
     return [
       level,
       (data: any, msg?: string, ...args: any[]) =>
-        sendAnalyticsAndLog(level, data, msg, ...args),
+        sendLog(level, data, msg, ...args),
     ]
   }),
 ) as Record<LogLevel, pino.LogFn>
-
-setAnalyticsErrorLogger((error, context) => {
-  const err =
-    error instanceof Error ? error : new Error(typeof error === 'string' ? error : 'Unknown analytics error')
-
-  logger.warn(
-    {
-      analyticsError: true,
-      error: {
-        name: err.name,
-        message: err.message,
-        stack: err.stack,
-      },
-      context,
-    },
-    '[analytics] error',
-  )
-})

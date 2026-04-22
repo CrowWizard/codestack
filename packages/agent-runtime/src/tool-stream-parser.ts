@@ -1,5 +1,3 @@
-import { AnalyticsEvent } from '@codebuff/common/constants/analytics-events'
-
 import {
   createStreamParserState,
   parseStreamChunk,
@@ -82,7 +80,7 @@ export async function* processStreamWithTools(params: {
     const processor = processors[toolName] ?? defaultProcessor(toolName)
 
     trackEvent({
-      event: AnalyticsEvent.TOOL_USE,
+      event: 'tool_use',
       userId: loggerOptions?.userId ?? '',
       properties: {
         toolName,

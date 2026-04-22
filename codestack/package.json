@@ -1,0 +1,21 @@
+{
+  "name": "@codebuff/codestack",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun run prebuild:agents && NEXT_PUBLIC_CB_ENVIRONMENT=dev NEXT_PUBLIC_CODEBUFF_APP_URL=http://localhost:3000 NEXT_PUBLIC_SUPPORT_EMAIL=support@codebuff.com NEXT_PUBLIC_WEB_PORT=3000 codestack_MODE=true codestack_MODEL_RESOLUTION_DEBUG=true codestack_MODEL_RESOLUTION_DEBUG_FILE=../debug/codestack.log bun run ../cli/src/index.tsx --cwd ..",
+    "prebuild:agents": "bun run ../cli/scripts/prebuild-agents.ts",
+    "build:binary": "bun cli/build.ts 0.0.0-dev",
+    "release": "bun cli/release.ts",
+    "smoke": "bun test codestack/cli/smoke-test.test.ts",
+    "e2e": "bun run build:binary && bun test codestack/e2e/tests/",
+    "e2e:version": "bun test codestack/e2e/tests/version.e2e.test.ts",
+    "e2e:startup": "bun test codestack/e2e/tests/startup.e2e.test.ts",
+    "e2e:help": "bun test codestack/e2e/tests/help-command.e2e.test.ts",
+    "e2e:slash-commands": "bun test codestack/e2e/tests/slash-commands.e2e.test.ts",
+    "e2e:agent": "bun test codestack/e2e/tests/agent-startup.e2e.test.ts",
+    "e2e:code-edit": "bun test codestack/e2e/tests/code-edit.e2e.test.ts",
+    "e2e:terminal-command": "bun test codestack/e2e/tests/terminal-command.e2e.test.ts",
+    "e2e:knowledge-file": "bun test codestack/e2e/tests/knowledge-file.e2e.test.ts"
+  }
+}

@@ -1,4 +1,3 @@
-import { AnalyticsEvent } from '@codebuff/common/constants/analytics-events'
 import { supportsCacheControl } from '@codebuff/common/old-constants'
 import { TOOLS_WHICH_WONT_FORCE_NEXT_STEP } from '@codebuff/common/tools/constants'
 import { buildArray } from '@codebuff/common/util/array'
@@ -182,7 +181,7 @@ export const runAgentStep = async (
   // This is used to link logs within a single agent loop
   const agentStepId = crypto.randomUUID()
   trackEvent({
-    event: AnalyticsEvent.AGENT_STEP,
+    event: 'agent_step',
     userId: userId ?? '',
     properties: {
       agentStepId,

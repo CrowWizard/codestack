@@ -1,4 +1,3 @@
-import { AnalyticsEvent } from '@codebuff/common/constants/analytics-events'
 import {
   endsAgentStepParam,
   endToolTag,
@@ -84,7 +83,7 @@ export async function* processStreamWithTags(params: {
       parsedParams = JSON.parse(contents)
     } catch (error: any) {
       trackEvent({
-        event: AnalyticsEvent.MALFORMED_TOOL_CALL_JSON,
+        event: 'malformed_tool_call_json',
         userId: loggerOptions?.userId ?? '',
         properties: {
           contents: JSON.stringify(contents),
@@ -119,7 +118,7 @@ export async function* processStreamWithTags(params: {
         : undefined
     if (!processor) {
       trackEvent({
-        event: AnalyticsEvent.UNKNOWN_TOOL_CALL,
+        event: 'unknown_tool_call',
         userId: loggerOptions?.userId ?? '',
         properties: {
           contents,
@@ -138,7 +137,7 @@ export async function* processStreamWithTags(params: {
     }
 
     trackEvent({
-      event: AnalyticsEvent.TOOL_USE,
+      event: 'tool_use',
       userId: loggerOptions?.userId ?? '',
       properties: {
         toolName,

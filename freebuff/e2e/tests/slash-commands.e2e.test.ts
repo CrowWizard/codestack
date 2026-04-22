@@ -13,9 +13,6 @@ const SESSION_HEIGHT = 40
 const REMOVED_COMMANDS = [
   '/subscribe',
   '/usage',
-  '/credits',
-  '/ads:enable',
-  '/ads:disable',
   '/connect:claude',
   '/refer-friends',
   '/agent:gpt-5',

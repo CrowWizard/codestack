@@ -114,18 +114,18 @@ function getCacheEntry<T>(key: string): CacheEntry<T> | undefined {
 export function isEntryStale(key: string, staleTime: number): boolean {
   const entry = getCacheEntry(key)
   if (!entry) return true
-  
+
   // If we have successful data, use its timestamp for staleness
   if (entry.dataUpdatedAt !== 0) {
     return staleTime === 0 || Date.now() - entry.dataUpdatedAt > staleTime
   }
-  
+
   // No successful data - check if we have a recent error
   // Use errorUpdatedAt to prevent rapid retries on persistent errors
   if (entry.errorUpdatedAt !== null) {
     return staleTime === 0 || Date.now() - entry.errorUpdatedAt > staleTime
   }
-  
+
   // No data and no error timestamp - entry is stale
   return true
 }
@@ -206,8 +206,6 @@ function deleteCacheEntry(key: string): void {
 export type UseActivityQueryOptions<T> = {
   /** Unique key for caching the query */
   queryKey: readonly unknown[]
-  /** Function that fetches the data */
-  queryFn: () => Promise<T>
   /** Whether the query is enabled (default: true) */
   enabled?: boolean
   /** Time in ms before data is considered stale (default: 0) */
@@ -257,7 +255,6 @@ export function useActivityQuery<T>(
 ): UseActivityQueryResult<T> {
   const {
     queryKey,
-    queryFn,
     enabled = true,
     staleTime = 0,
     gcTime = 5 * 60 * 1000,
@@ -273,12 +270,7 @@ export function useActivityQuery<T>(
   const mountedRef = useRef(true)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const wasIdleRef = useRef(false)
-  
-  // Store queryFn in a ref to avoid recreating doFetch when queryFn changes.
-  // This is critical because inline arrow functions create new references on every render,
-  // which would cause the polling interval to reset constantly.
-  const queryFnRef = useRef(queryFn)
-  queryFnRef.current = queryFn
+
 
   // Snapshot includes entry + isFetching (so fetch-status updates rerender correctly)
   const snap = useSyncExternalStore(
@@ -310,74 +302,74 @@ export function useActivityQuery<T>(
     const myGen = getGeneration(serializedKey)
     setQueryFetching(serializedKey, true)
 
-    const fetchPromise = (async () => {
-      try {
-        // Use ref to get latest queryFn without including it in dependencies
-        const result = await queryFnRef.current()
+    // const fetchPromise = (async () => {
+    //   try {
+    //     // Use ref to get latest queryFn without including it in dependencies
+    //     const result = await queryFnRef.current()
 
-        // If someone removed/GC'd this key while we were in-flight, don’t resurrect it.
-        if (getGeneration(serializedKey) !== myGen) return
+    //     // If someone removed/GC'd this key while we were in-flight, don’t resurrect it.
+    //     if (getGeneration(serializedKey) !== myGen) return
 
-        setCacheEntry(serializedKey, {
-          data: result,
-          dataUpdatedAt: Date.now(),
-          error: null,
-          errorUpdatedAt: null,
-        })
-        retryCounts.set(serializedKey, 0)
-      } catch (err) {
-        const e = err instanceof Error ? err : new Error(String(err))
-        const maxRetries = retry === false ? 0 : retry
-        const currentRetries = retryCounts.get(serializedKey) ?? 0
+    //     setCacheEntry(serializedKey, {
+    //       data: result,
+    //       dataUpdatedAt: Date.now(),
+    //       error: null,
+    //       errorUpdatedAt: null,
+    //     })
+    //     retryCounts.set(serializedKey, 0)
+    //   } catch (err) {
+    //     const e = err instanceof Error ? err : new Error(String(err))
+    //     const maxRetries = retry === false ? 0 : retry
+    //     const currentRetries = retryCounts.get(serializedKey) ?? 0
 
-        if (currentRetries < maxRetries && getRefCount(serializedKey) > 0) {
-          const next = currentRetries + 1
-          retryCounts.set(serializedKey, next)
+    //     if (currentRetries < maxRetries && getRefCount(serializedKey) > 0) {
+    //       const next = currentRetries + 1
+    //       retryCounts.set(serializedKey, next)
 
-          // allow a new in-flight request for the retry attempt
-          inFlight.delete(serializedKey)
-          setQueryFetching(serializedKey, false)
+    //       // allow a new in-flight request for the retry attempt
+    //       inFlight.delete(serializedKey)
+    //       setQueryFetching(serializedKey, false)
 
-          // Only clear the previous timeout, NOT the retry count.
-          // Using clearRetryState here would reset retryCounts, causing infinite retries.
-          // (see: _retryTestHelpers.simulateFailedFetch mirrors this logic)
-          clearRetryTimeout(serializedKey)
-          const t = setTimeout(() => {
-            retryTimeouts.delete(serializedKey)
-            // only retry if still mounted somewhere and key not deleted
-            if (getRefCount(serializedKey) > 0 && getGeneration(serializedKey) === myGen) {
-              void doFetch()
-            }
-          }, 1000 * next)
-          retryTimeouts.set(serializedKey, t)
-          return
-        }
+    //       // Only clear the previous timeout, NOT the retry count.
+    //       // Using clearRetryState here would reset retryCounts, causing infinite retries.
+    //       // (see: _retryTestHelpers.simulateFailedFetch mirrors this logic)
+    //       clearRetryTimeout(serializedKey)
+    //       const t = setTimeout(() => {
+    //         retryTimeouts.delete(serializedKey)
+    //         // only retry if still mounted somewhere and key not deleted
+    //         if (getRefCount(serializedKey) > 0 && getGeneration(serializedKey) === myGen) {
+    //           void doFetch()
+    //         }
+    //       }, 1000 * next)
+    //       retryTimeouts.set(serializedKey, t)
+    //       return
+    //     }
 
-        retryCounts.set(serializedKey, 0)
+    //     retryCounts.set(serializedKey, 0)
 
-        // Store error even if we have no existing data (error-only entry).
-        if (getGeneration(serializedKey) !== myGen) return
+    //     // Store error even if we have no existing data (error-only entry).
+    //     if (getGeneration(serializedKey) !== myGen) return
 
-        const existingEntry = getCacheEntry<T>(serializedKey)
-        setCacheEntry(serializedKey, {
-          data: existingEntry?.data,
-          dataUpdatedAt: existingEntry?.dataUpdatedAt ?? 0,
-          error: e,
-          errorUpdatedAt: Date.now(),
-        })
-      } finally {
-        inFlight.delete(serializedKey)
-        setQueryFetching(serializedKey, false)
+    //     const existingEntry = getCacheEntry<T>(serializedKey)
+    //     setCacheEntry(serializedKey, {
+    //       data: existingEntry?.data,
+    //       dataUpdatedAt: existingEntry?.dataUpdatedAt ?? 0,
+    //       error: e,
+    //       errorUpdatedAt: Date.now(),
+    //     })
+    //   } finally {
+    //     inFlight.delete(serializedKey)
+    //     setQueryFetching(serializedKey, false)
 
-        // If nobody is watching and the entry was deleted, keep things tidy.
-        if (getRefCount(serializedKey) === 0) {
-          clearRetryState(serializedKey)
-        }
-      }
-    })()
+    //     // If nobody is watching and the entry was deleted, keep things tidy.
+    //     if (getRefCount(serializedKey) === 0) {
+    //       clearRetryState(serializedKey)
+    //     }
+    //   }
+    // })()
 
-    inFlight.set(serializedKey, fetchPromise)
-    await fetchPromise
+    // inFlight.set(serializedKey, fetchPromise)
+    // await fetchPromise
   }, [enabled, serializedKey, retry])
 
   const refetch = useCallback(async (): Promise<void> => {

@@ -48,10 +48,10 @@ export const getConfigDir = (): string => {
     os.homedir(),
     '.config',
     'manicode' +
-      // on a development stack?
-      (env.NEXT_PUBLIC_CB_ENVIRONMENT !== 'prod'
-        ? `-${env.NEXT_PUBLIC_CB_ENVIRONMENT}`
-        : ''),
+    // on a development stack?
+    (env.NEXT_PUBLIC_CB_ENVIRONMENT !== 'prod'
+      ? `-${env.NEXT_PUBLIC_CB_ENVIRONMENT}`
+      : ''),
   )
 }
 
@@ -220,38 +220,4 @@ export const clearUserCredentials = (): void => {
     )
     throw error
   }
-}
-
-export async function logoutUser(): Promise<boolean> {
-  try {
-    const user = getUserCredentials()
-    if (user?.authToken) {
-      setApiClientAuthToken(user.authToken)
-      const apiClient = getApiClient()
-      try {
-        const response = await apiClient.logout({
-          userId: user.id,
-          fingerprintId: user.fingerprintId,
-          fingerprintHash: user.fingerprintHash,
-        })
-        if (!response.ok) {
-          logger.error(
-            { status: response.status, error: response.error },
-            'Logout request failed',
-          )
-        }
-      } catch (err) {
-        logger.error(err, 'Logout request error')
-      }
-    }
-  } catch (error) {
-    logger.error(error, 'Unexpected error preparing logout')
-  }
-
-  try {
-    clearUserCredentials()
-  } catch (error) {
-    logger.debug({ error }, 'Failed to clear credentials during logout')
-  }
-  return true
 }

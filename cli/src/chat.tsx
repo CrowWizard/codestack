@@ -1,4 +1,3 @@
-import { AnalyticsEvent } from '@codebuff/common/constants/analytics-events'
 import type { FeedbackCategory } from '@codebuff/common/constants/feedback'
 import { safeOpen } from './utils/open-url'
 import {
@@ -11,10 +10,7 @@ import {
 } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
-import { getAdsEnabled, handleAdsDisable } from './commands/ads'
 import { routeUserPrompt, addBashMessageToHistory } from './commands/router'
-import { AdBanner } from './components/ad-banner'
-import { ChoiceAdBanner } from './components/choice-ad-banner'
 import { ChatInputBar } from './components/chat-input-bar'
 import { LoadPreviousButton } from './components/load-previous-button'
 import { ReviewScreen } from './components/review-screen'
@@ -39,13 +35,10 @@ import { useChatUI } from './hooks/use-chat-ui'
 import { useSubscriptionQuery } from './hooks/use-subscription-query'
 import { useClipboard } from './hooks/use-clipboard'
 import { useEvent } from './hooks/use-event'
-import { useGravityAd } from './hooks/use-gravity-ad'
 import { useInputHistory } from './hooks/use-input-history'
-import { usePublishMutation } from './hooks/use-publish-mutation'
 import { useSendMessage } from './hooks/use-send-message'
 import { useSuggestionEngine } from './hooks/use-suggestion-engine'
 import { useUsageMonitor } from './hooks/use-usage-monitor'
-import { WEBSITE_URL } from './login/constants'
 import { getProjectRoot } from './project-files'
 import { useChatHistoryStore } from './state/chat-history-store'
 import { useChatStore } from './state/chat-store'
@@ -54,7 +47,6 @@ import { useFeedbackStore } from './state/feedback-store'
 import { useMessageBlockStore } from './state/message-block-store'
 import { usePublishStore } from './state/publish-store'
 import { reportActivity } from './utils/activity-tracker'
-import { trackEvent } from './utils/analytics'
 import { showClipboardMessage } from './utils/clipboard'
 import { readClipboardImage } from './utils/clipboard-image'
 import { endAndRejoinFreebuffSession } from './hooks/use-freebuff-session'
@@ -77,7 +69,6 @@ import {
 import { getLoadedSkills } from './utils/skill-registry'
 import {
   getStatusIndicatorState,
-  type AuthStatus,
 } from './utils/status-indicator-state'
 import { createPasteHandler } from './utils/strings'
 import { setTerminalTitle } from './utils/terminal-title'
@@ -86,13 +77,9 @@ import { computeInputLayoutMetrics } from './utils/text-layout'
 import type { CommandResult } from './commands/command-registry'
 import type { MultilineInputHandle } from './components/multiline-input'
 import type { MatchedSlashCommand } from './hooks/use-suggestion-engine'
-import type { FreebuffSessionResponse } from './types/freebuff-session'
-import type { User } from './utils/auth'
 import type { AgentMode } from './utils/constants'
 import type { FileTreeNode } from '@codebuff/common/util/file'
 import type { ScrollBoxRenderable } from '@opentui/core'
-import type { UseMutationResult } from '@tanstack/react-query'
-import type { Dispatch, SetStateAction } from 'react'
 
 export const Chat = ({
   headerContent,
@@ -100,32 +87,22 @@ export const Chat = ({
   agentId,
   fileTree,
   inputRef,
-  setIsAuthenticated,
-  setUser,
-  logoutMutation,
   continueChat,
   continueChatId,
-  authStatus,
   initialMode,
   gitRoot,
   onSwitchToGitRoot,
-  freebuffSession,
 }: {
   headerContent: React.ReactNode
   initialPrompt: string | null
   agentId?: string
   fileTree: FileTreeNode[]
   inputRef: React.MutableRefObject<MultilineInputHandle | null>
-  setIsAuthenticated: Dispatch<SetStateAction<boolean | null>>
-  setUser: Dispatch<SetStateAction<User | null>>
-  logoutMutation: UseMutationResult<boolean, Error, void, unknown>
   continueChat: boolean
   continueChatId?: string
-  authStatus: AuthStatus
   initialMode?: AgentMode
   gitRoot?: string | null
   onSwitchToGitRoot?: () => void
-  freebuffSession: FreebuffSessionResponse | null
 }) => {
   const [forceFileOnlyMentions, setForceFileOnlyMentions] = useState(false)
 
@@ -173,15 +150,6 @@ export const Chat = ({
   const { data: subscriptionData } = useSubscriptionQuery({
     refetchInterval: 60 * 1000,
   })
-  const hasSubscription = subscriptionData?.hasSubscription ?? false
-
-  const { ad, adData, recordImpression } = useGravityAd({ enabled: IS_FREEBUFF || !hasSubscription })
-  const [adsManuallyDisabled, setAdsManuallyDisabled] = useState(false)
-
-  const handleDisableAds = useCallback(() => {
-    handleAdsDisable()
-    setAdsManuallyDisabled(true)
-  }, [])
 
   // Set initial mode from CLI flag on mount
   useEffect(() => {
@@ -228,19 +196,6 @@ export const Chat = ({
   // Get loaded skills for slash commands
   const loadedSkills = useMemo(() => getLoadedSkills(), [])
 
-  // Filter slash commands based on current ads state - only show the option that changes state
-  // Hide both ads commands entirely for subscribers
-  // Also merge in skill commands
-  const filteredSlashCommands = useMemo(() => {
-    const adsEnabled = getAdsEnabled()
-    const allCommands = getSlashCommandsWithSkills(loadedSkills)
-    return allCommands.filter((cmd) => {
-      if (cmd.id === 'ads:enable') return !hasSubscription && !adsEnabled
-      if (cmd.id === 'ads:disable') return !hasSubscription && adsEnabled
-      return true
-    })
-  }, [inputValue, loadedSkills, hasSubscription]) // Re-evaluate when input changes (user may have just toggled)
-
   const {
     slashContext,
     mentionContext,
@@ -254,7 +209,7 @@ export const Chat = ({
     disableAgentSuggestions: forceFileOnlyMentions || inputMode !== 'default',
     inputValue: inputMode === 'bash' ? '' : inputValue,
     cursorPosition,
-    slashCommands: filteredSlashCommands,
+    slashCommands: getSlashCommandsWithSkills(loadedSkills),
     localAgents,
     fileTree,
     currentAgentMode: agentMode,
@@ -270,11 +225,14 @@ export const Chat = ({
   const prevSlashActiveRef = useRef(false)
   useEffect(() => {
     if (slashContext.active && !prevSlashActiveRef.current) {
-      trackEvent(AnalyticsEvent.SLASH_MENU_ACTIVATED, {
-        queryLength: slashContext.query.length,
-        matchCount: slashMatches.length,
-        inputLength: inputValue.length,
-      })
+      logger.info(
+        {
+          queryLength: slashContext.query.length,
+          matchCount: slashMatches.length,
+          inputLength: inputValue.length,
+        },
+        '[slash-menu] activated',
+      )
     }
     prevSlashActiveRef.current = slashContext.active
   }, [slashContext.active, slashContext.query, slashMatches.length, inputValue.length])
@@ -354,8 +312,6 @@ export const Chat = ({
 
   // Use extracted streaming hook for connection, timer, queue, and exit handling
   const {
-    isConnected,
-    showReconnectionMessage,
     mainAgentTimer,
     timerStartTime,
     streamStatus,
@@ -442,7 +398,7 @@ export const Chat = ({
     onBeforeMessageSend: validateAgents,
     mainAgentTimer,
     scrollToLatest,
-    onTimerEvent: () => {},
+    onTimerEvent: () => { },
     isQueuePausedRef,
     isProcessingQueueRef,
     resumeQueue,
@@ -464,25 +420,25 @@ export const Chat = ({
       const preserveInput = options?.preserveInputValue === true
       const previousInputValue = preserveInput
         ? (() => {
-            const {
-              inputValue: text,
-              cursorPosition,
-              lastEditDueToNav,
-            } = useChatStore.getState()
-            return { text, cursorPosition, lastEditDueToNav }
-          })()
+          const {
+            inputValue: text,
+            cursorPosition,
+            lastEditDueToNav,
+          } = useChatStore.getState()
+          return { text, cursorPosition, lastEditDueToNav }
+        })()
         : null
 
       // Preserve attachments if needed (inline logic to avoid abstraction overhead)
       const preservedAttachments = preserveInput
         ? (() => {
-            const items = useChatStore.getState().pendingAttachments
-            if (items.length > 0) {
-              useChatStore.getState().clearPendingAttachments()
-              return [...items]
-            }
-            return null
-          })()
+          const items = useChatStore.getState().pendingAttachments
+          if (items.length > 0) {
+            useChatStore.getState().clearPendingAttachments()
+            return [...items]
+          }
+          return null
+        })()
         : null
 
       try {
@@ -493,7 +449,6 @@ export const Chat = ({
           inputValue: content,
           isChainInProgressRef,
           isStreaming,
-          logoutMutation,
           streamMessageIdRef,
           addToQueue,
           clearMessages,
@@ -503,9 +458,7 @@ export const Chat = ({
           setCanProcessQueue,
           setInputFocused,
           setInputValue,
-          setIsAuthenticated,
           setMessages,
-          setUser,
           stopStreaming,
         })
 
@@ -543,13 +496,6 @@ export const Chat = ({
         { promptLength: prompt.length, index, toolCallId, agentMode },
         '[followup-click] Followup clicked',
       )
-
-      // Track analytics event
-      trackEvent(AnalyticsEvent.FOLLOWUP_CLICKED, {
-        promptLength: prompt.length,
-        index,
-        agentMode,
-      })
 
       // Mark this followup as clicked (persisted per toolCallId)
       useChatStore.getState().markFollowupClicked(toolCallId, index)
@@ -667,8 +613,6 @@ export const Chat = ({
       closeReviewScreen: state.closeReviewScreen,
     })),
   )
-
-  const publishMutation = usePublishMutation()
 
   const handleCommandResult = useCallback(
     (result?: CommandResult) => {
@@ -854,13 +798,6 @@ export const Chat = ({
     setInputMode('review')
     setInputFocused(true)
   }, [closeReviewScreen, setInputMode, setInputFocused])
-
-  const handlePublish = useCallback(
-    async (agentIds: string[]) => {
-      await publishMutation.mutateAsync(agentIds)
-    },
-    [publishMutation],
-  )
 
   // Ensure bracketed paste events target the active chat input
   useEffect(() => {
@@ -1158,15 +1095,6 @@ export const Chat = ({
       onScrollUp: scrollUp,
       onScrollDown: scrollDown,
       onToggleAll: handleToggleAll,
-      onOpenBuyCredits: () => {
-        // If credits have been restored, just return to default mode
-        if (areCreditsRestored()) {
-          setInputMode('default')
-          return
-        }
-        // Otherwise open the buy credits page
-        safeOpen(WEBSITE_URL + '/usage')
-      },
     }),
     [
       setInputMode,
@@ -1299,33 +1227,9 @@ export const Chat = ({
     statusMessage,
     streamStatus,
     nextCtrlCWillExit,
-    isConnected,
-    authStatus,
-    showReconnectionMessage,
     isRetrying,
     isAskUserActive: askUserState !== null,
   })
-  const hasStatusIndicatorContent = statusIndicatorState.kind !== 'idle'
-
-  // Auto-show subscription limit banner when rate limit becomes active
-  const subscriptionLimitShownRef = useRef(false)
-  const subscriptionRateLimit = subscriptionData?.hasSubscription ? subscriptionData.rateLimit : undefined
-  const fallbackToALaCarte = subscriptionData?.fallbackToALaCarte ?? false
-  useEffect(() => {
-    const isLimited = subscriptionRateLimit?.limited === true
-    if (isLimited && !subscriptionLimitShownRef.current) {
-      subscriptionLimitShownRef.current = true
-      // Skip showing the banner if user prefers to always fall back to a-la-carte
-      if (!fallbackToALaCarte) {
-        useChatStore.getState().setInputMode('subscriptionLimit')
-      }
-    } else if (!isLimited) {
-      subscriptionLimitShownRef.current = false
-      if (useChatStore.getState().inputMode === 'subscriptionLimit') {
-        useChatStore.getState().setInputMode('default')
-      }
-    }
-  }, [subscriptionRateLimit?.limited, fallbackToALaCarte])
 
   const inputBoxTitle = useMemo(() => {
     const segments: string[] = []
@@ -1343,16 +1247,10 @@ export const Chat = ({
     return ` ${segments.join('   ')} `
   }, [queuePreviewTitle, pausedQueueText])
 
-  const hasActiveFreebuffSession =
-    IS_FREEBUFF && freebuffSession?.status === 'active'
-  const isFreebuffSessionOver =
-    IS_FREEBUFF && freebuffSession?.status === 'ended'
   const shouldShowStatusLine =
     !feedbackMode &&
-    (hasStatusIndicatorContent ||
-      shouldShowQueuePreview ||
-      !isAtBottom ||
-      hasActiveFreebuffSession)
+    (shouldShowQueuePreview ||
+      !isAtBottom)
 
   // Track mouse movement for ad activity (throttled)
   const lastMouseActivityRef = useRef<number>(0)
@@ -1460,25 +1358,9 @@ export const Chat = ({
                 ...prev,
                 getSystemMessage(END_SESSION_MESSAGE),
               ])
-              endAndRejoinFreebuffSession().catch(() => {})
+              endAndRejoinFreebuffSession().catch(() => { })
             }}
-            freebuffSession={freebuffSession}
           />
-        )}
-
-        {ad && (IS_FREEBUFF || (!adsManuallyDisabled && getAdsEnabled())) && (
-          adData?.variant === 'choice' ? (
-            <ChoiceAdBanner
-              ads={adData.ads}
-              onImpression={recordImpression}
-            />
-          ) : (
-            <AdBanner
-              ad={ad}
-              onDisableAds={handleDisableAds}
-              isFreeMode={IS_FREEBUFF}
-            />
-          )
         )}
 
         {reviewMode ? (
@@ -1491,10 +1373,6 @@ export const Chat = ({
             onSelectOption={handleReviewOptionSelect}
             onCustom={handleReviewCustom}
             onCancel={handleCloseReviewScreen}
-          />
-        ) : isFreebuffSessionOver && !askUserState ? (
-          <SessionEndedBanner
-            isStreaming={isStreaming || isWaitingForResponse}
           />
         ) : (
           <ChatInputBar
@@ -1529,7 +1407,6 @@ export const Chat = ({
             handleExitFeedback={handleExitFeedback}
             publishMode={publishMode}
             handleExitPublish={handleExitPublish}
-            handlePublish={handlePublish}
             handleSubmit={handleSubmit}
             onPaste={createPasteHandler({
               text: inputValue,

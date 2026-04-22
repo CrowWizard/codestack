@@ -1,4 +1,3 @@
-import { AnalyticsEvent } from '@codebuff/common/constants/analytics-events'
 import { TextAttributes } from '@opentui/core'
 import React, { useRef } from 'react'
 
@@ -40,7 +39,6 @@ export const FeedbackIconButton: React.FC<FeedbackIconButtonProps> = ({
       hoveredOnceRef.current = true
       logger.info(
         {
-          eventId: AnalyticsEvent.FEEDBACK_BUTTON_HOVERED,
           messageId,
           source: 'cli',
         },

@@ -1,4 +1,4 @@
-import * as analytics from '@codebuff/common/analytics'
+
 import { TEST_USER_ID } from '@codebuff/common/old-constants'
 import { TEST_AGENT_RUNTIME_IMPL } from '@codebuff/common/testing/impl/agent-runtime'
 import { getInitialSessionState } from '@codebuff/common/types/session-state'
@@ -49,10 +49,7 @@ describe('read_docs tool with researcher agent (via web API facade)', () => {
   beforeEach(() => {
     agentRuntimeImpl = { ...TEST_AGENT_RUNTIME_IMPL, sendAction: () => {} }
 
-    spyOn(analytics, 'trackEvent').mockImplementation(() => {})
-    spyOn(analytics, 'flushAnalytics').mockImplementation(() =>
-      Promise.resolve(),
-    )
+    agentRuntimeImpl.trackEvent = mock(() => {})
 
     agentRuntimeImpl.requestFiles = async () => ({})
     agentRuntimeImpl.requestOptionalFile = async () => null

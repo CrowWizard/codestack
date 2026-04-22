@@ -1,5 +1,3 @@
-import { trackEvent } from '@codebuff/common/analytics'
-import { AnalyticsEvent } from '@codebuff/common/constants/analytics-events'
 import { INITIAL_RETRY_DELAY, withRetry } from '@codebuff/common/util/promise'
 import { sql } from 'drizzle-orm'
 
@@ -65,32 +63,6 @@ const SIGNIFICANT_LOCK_WAIT_MS = 3000
 
 /** Threshold for logging significant retry delays (3 seconds cumulative) */
 const SIGNIFICANT_RETRY_DELAY_MS = 3000
-
-/**
- * Extracts a user ID for analytics tracking from context or lock key.
- * Falls back to 'system' if no user ID can be determined.
- */
-function getUserIdForAnalytics(
-  context: Record<string, unknown>,
-  lockKey?: string,
-): string {
-  // Try to get userId from context
-  if (typeof context.userId === 'string' && context.userId) {
-    return context.userId
-  }
-  // Try to get organizationId from context
-  if (typeof context.organizationId === 'string' && context.organizationId) {
-    return context.organizationId
-  }
-  // Try to extract from lockKey (format: "user:id" or "org:id")
-  if (lockKey) {
-    const colonIndex = lockKey.indexOf(':')
-    if (colonIndex > 0 && colonIndex < lockKey.length - 1) {
-      return lockKey.substring(colonIndex + 1)
-    }
-  }
-  return 'system'
-}
 
 function getPostgresErrorCode(error: unknown): string | null {
   if (!error || typeof error !== 'object') {
@@ -213,21 +185,6 @@ export async function withSerializableTransaction<T>({
             },
             `Serializable transaction retry ${attempt}: ${errorDescription} (${errorCode}), cumulative delay ${(cumulativeDelayMs / 1000).toFixed(1)}s`,
           )
-
-          // Track in PostHog for analytics
-          trackEvent({
-            event: AnalyticsEvent.TRANSACTION_RETRY_THRESHOLD_EXCEEDED,
-            userId: getUserIdForAnalytics(context),
-            properties: {
-              ...context,
-              transactionType: 'serializable',
-              attempt,
-              pgErrorCode: errorCode,
-              pgErrorDescription: errorDescription,
-              cumulativeDelayMs,
-            },
-            logger,
-          })
         }
       },
     },
@@ -308,20 +265,6 @@ export async function withAdvisoryLockTransaction<T>({
               { ...context, lockKey, lockWaitMs },
               `Advisory lock contention: waited ${(lockWaitMs / 1000).toFixed(1)}s for lock`,
             )
-
-            // Track in PostHog for analytics
-            trackEvent({
-              event: AnalyticsEvent.ADVISORY_LOCK_CONTENTION,
-              userId: getUserIdForAnalytics(context, lockKey),
-              properties: {
-                ...context,
-                lockKey,
-                lockKeyType: lockKey.split(':')[0],
-                lockWaitMs,
-                lockWaitSeconds: lockWaitMs / 1000,
-              },
-              logger,
-            })
           }
 
           const result = await callback(tx)
@@ -364,23 +307,6 @@ export async function withAdvisoryLockTransaction<T>({
             },
             `Advisory lock transaction retry ${attempt}: ${errorDescription} (${errorCode}), cumulative delay ${(cumulativeDelayMs / 1000).toFixed(1)}s`,
           )
-
-          // Track in PostHog for analytics
-          trackEvent({
-            event: AnalyticsEvent.TRANSACTION_RETRY_THRESHOLD_EXCEEDED,
-            userId: getUserIdForAnalytics(context, lockKey),
-            properties: {
-              ...context,
-              transactionType: 'advisory_lock',
-              lockKey,
-              lockKeyType: lockKey.split(':')[0],
-              attempt,
-              pgErrorCode: errorCode,
-              pgErrorDescription: errorDescription,
-              cumulativeDelayMs,
-            },
-            logger,
-          })
         }
       },
     },

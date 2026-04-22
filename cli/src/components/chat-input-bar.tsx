@@ -66,7 +66,6 @@ interface ChatInputBarProps {
   // Publish mode
   publishMode: boolean
   handleExitPublish: () => void
-  handlePublish: (agentIds: string[]) => Promise<void>
 
   // Handlers
   handleSubmit: () => Promise<void>
@@ -106,7 +105,6 @@ export const ChatInputBar = ({
   handleExitFeedback,
   publishMode,
   handleExitPublish,
-  handlePublish,
   handleSubmit,
   onPaste,
   onInterruptStream,
@@ -182,8 +180,6 @@ export const ChatInputBar = ({
     return (
       <PublishContainer
         inputRef={inputRef}
-        onExitPublish={handleExitPublish}
-        onPublish={handlePublish}
         width={separatorWidth}
       />
     )

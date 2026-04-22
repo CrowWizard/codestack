@@ -20,15 +20,11 @@ import { BORDER_CHARS } from '../utils/ui-constants'
 
 interface PublishContainerProps {
   inputRef: React.MutableRefObject<MultilineInputHandle | null>
-  onExitPublish?: () => void
-  onPublish: (agentIds: string[]) => Promise<void>
   width: number
 }
 
 export const PublishContainer: React.FC<PublishContainerProps> = ({
   inputRef,
-  onExitPublish,
-  onPublish,
   width,
 }) => {
   const theme = useTheme()
@@ -37,7 +33,6 @@ export const PublishContainer: React.FC<PublishContainerProps> = ({
   const [closeButtonHovered, setCloseButtonHovered] = useState(false)
   const [nextButtonHovered, setNextButtonHovered] = useState(false)
   const [backButtonHovered, setBackButtonHovered] = useState(false)
-  const [publishButtonHovered, setPublishButtonHovered] = useState(false)
 
   const {
     publishMode,
@@ -117,7 +112,6 @@ export const PublishContainer: React.FC<PublishContainerProps> = ({
           setSearchQuery('')
         } else {
           closePublish()
-          onExitPublish?.()
         }
         return true
       }
@@ -156,14 +150,12 @@ export const PublishContainer: React.FC<PublishContainerProps> = ({
       goToConfirmation,
       setSearchQuery,
       closePublish,
-      onExitPublish,
     ],
   )
 
   const handleCancel = useCallback(() => {
     closePublish()
-    onExitPublish?.()
-  }, [closePublish, onExitPublish])
+  }, [closePublish])
 
   const handleNext = useCallback(() => {
     if (canProceed) {
@@ -174,16 +166,6 @@ export const PublishContainer: React.FC<PublishContainerProps> = ({
   const handleBack = useCallback(() => {
     goBackToSelection()
   }, [goBackToSelection])
-
-  // Compute the total count of agents to publish (for button label)
-  const publishAgentIds = useMemo(
-    () => getAllPublishAgentIds(selectedAgents, agents, agentDefinitions, includeDependents),
-    [selectedAgents, agents, agentDefinitions, includeDependents]
-  )
-
-  const handlePublish = useCallback(async () => {
-    await onPublish(publishAgentIds)
-  }, [publishAgentIds, onPublish])
 
   useEffect(() => {
     if (publishMode && inputRef.current && currentStep === 'selection') {
@@ -357,7 +339,7 @@ export const PublishContainer: React.FC<PublishContainerProps> = ({
               value={searchQuery}
               onChange={({ text }) => setSearchQuery(text)}
               onSubmit={handleNext}
-              onPaste={() => {}}
+              onPaste={() => { }}
               onKeyIntercept={handleSearchKeyIntercept}
               placeholder="Type to search agents..."
               focused={inputFocused}
@@ -495,38 +477,6 @@ export const PublishContainer: React.FC<PublishContainerProps> = ({
                   fg={backButtonHovered ? theme.foreground : theme.secondary}
                 >
                   BACK
-                </span>
-              </text>
-            </Button>
-            <Button
-              onClick={handlePublish}
-              onMouseOver={() => setPublishButtonHovered(true)}
-              onMouseOut={() => setPublishButtonHovered(false)}
-              style={{
-                paddingLeft: 1,
-                paddingRight: 1,
-                paddingTop: 0,
-                paddingBottom: 0,
-                borderStyle: 'single',
-                borderColor: isPublishing ? theme.border : theme.success,
-                customBorderChars: BORDER_CHARS,
-                backgroundColor: 'transparent',
-              }}
-            >
-              <text
-                style={{ wrapMode: 'none' }}
-                attributes={isPublishing ? TextAttributes.DIM : undefined}
-              >
-                <span
-                  fg={
-                    isPublishing
-                      ? theme.muted
-                      : publishButtonHovered
-                        ? theme.success
-                        : theme.foreground
-                  }
-                >
-                  {isPublishing ? 'PUBLISHING...' : `PUBLISH ${pluralize(publishAgentIds.length, 'AGENT')}`}
                 </span>
               </text>
             </Button>

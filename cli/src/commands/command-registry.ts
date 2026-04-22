@@ -1,8 +1,6 @@
 import { CHATGPT_OAUTH_ENABLED } from '@codebuff/common/constants/chatgpt-oauth'
 import { CLAUDE_OAUTH_ENABLED } from '@codebuff/common/constants/claude-oauth'
-import { safeOpen } from '../utils/open-url'
 
-import { handleAdsEnable, handleAdsDisable } from './ads'
 import { handleHelpCommand } from './help'
 import { handleImageCommand } from './image'
 import { handleInitializationFlowLocally } from './init'
@@ -11,10 +9,8 @@ import { runBashCommand } from './router'
 import { handleUsageCommand } from './usage'
 import { endAndRejoinFreebuffSession } from '../hooks/use-freebuff-session'
 import { useThemeStore } from '../hooks/use-theme'
-import { WEBSITE_URL } from '../login/constants'
 import { useChatStore } from '../state/chat-store'
 import { useFeedbackStore } from '../state/feedback-store'
-import { useLoginStore } from '../state/login-store'
 import { getChatGptOAuthStatus } from '../utils/chatgpt-oauth'
 import { AGENT_MODES, END_SESSION_MESSAGE, IS_FREEBUFF } from '../utils/constants'
 import { getSystemMessage, getUserMessage } from '../utils/message-history'
@@ -25,9 +21,7 @@ import type { MultilineInputHandle } from '../components/multiline-input'
 import type { InputValue, PendingAttachment } from '../types/store'
 import type { ChatMessage } from '../types/chat'
 import type { SendMessageFn } from '../types/contracts/send-message'
-import type { User } from '../utils/auth'
 import type { AgentMode } from '../utils/constants'
-import type { UseMutationResult } from '@tanstack/react-query'
 
 export type RouterParams = {
   abortControllerRef: React.MutableRefObject<AbortController | null>
@@ -36,7 +30,6 @@ export type RouterParams = {
   inputValue: string
   isChainInProgressRef: React.MutableRefObject<boolean>
   isStreaming: boolean
-  logoutMutation: UseMutationResult<boolean, Error, void, unknown>
   streamMessageIdRef: React.MutableRefObject<string | null>
   addToQueue: (message: string, attachments?: PendingAttachment[]) => void
   clearMessages: () => void
@@ -48,11 +41,9 @@ export type RouterParams = {
   setInputValue: (
     value: InputValue | ((prev: InputValue) => InputValue),
   ) => void
-  setIsAuthenticated: (value: React.SetStateAction<boolean | null>) => void
   setMessages: (
     value: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[]),
   ) => void
-  setUser: (value: React.SetStateAction<User | null>) => void
   stopStreaming: () => void
 }
 
@@ -166,8 +157,6 @@ const clearInput = (params: RouterParams) => {
 }
 
 const FREEBUFF_REMOVED_COMMANDS = new Set([
-  'ads:enable',
-  'ads:disable',
   'usage',
   'subscribe',
   'image',
@@ -183,24 +172,6 @@ const FREEBUFF_ONLY_COMMANDS = new Set([
 ])
 
 const ALL_COMMANDS: CommandDefinition[] = [
-  defineCommand({
-    name: 'ads:enable',
-    handler: (params) => {
-      const { postUserMessage } = handleAdsEnable()
-      params.setMessages((prev) => postUserMessage(prev))
-      params.saveToHistory(params.inputValue.trim())
-      clearInput(params)
-    },
-  }),
-  defineCommand({
-    name: 'ads:disable',
-    handler: (params) => {
-      const { postUserMessage } = handleAdsDisable()
-      params.setMessages((prev) => postUserMessage(prev))
-      params.saveToHistory(params.inputValue.trim())
-      clearInput(params)
-    },
-  }),
   defineCommand({
     name: 'help',
     aliases: ['h', '?'],
@@ -247,44 +218,6 @@ const ALL_COMMANDS: CommandDefinition[] = [
       useChatStore.getState().setInputMode('bash')
       params.saveToHistory(params.inputValue.trim())
       clearInput(params)
-    },
-  }),
-  defineCommand({
-    name: 'login',
-    aliases: ['signin'],
-    handler: (params) => {
-      params.setMessages((prev) => [
-        ...prev,
-        getSystemMessage(
-          "You're already in the app. Use /logout to switch accounts.",
-        ),
-      ])
-      clearInput(params)
-    },
-  }),
-  defineCommand({
-    name: 'logout',
-    aliases: ['signout'],
-    handler: (params) => {
-      params.abortControllerRef.current?.abort()
-      params.stopStreaming()
-      params.setCanProcessQueue(false)
-
-      const { resetLoginState } = useLoginStore.getState()
-      params.logoutMutation.mutate(undefined, {
-        onSettled: () => {
-          resetLoginState()
-          params.setMessages((prev) => [
-            ...prev,
-            getSystemMessage('Logged out.'),
-          ])
-          clearInput(params)
-          setTimeout(() => {
-            params.setUser(null)
-            params.setIsAuthenticated(false)
-          }, 300)
-        },
-      })
     },
   }),
   defineCommand({
@@ -363,14 +296,6 @@ const ALL_COMMANDS: CommandDefinition[] = [
       const { postUserMessage } = await handleUsageCommand()
       params.setMessages((prev) => postUserMessage(prev))
       params.saveToHistory(params.inputValue.trim())
-      clearInput(params)
-    },
-  }),
-  defineCommand({
-    name: 'subscribe',
-    aliases: ['strong', 'sub', 'buy-credits'],
-    handler: (params) => {
-      safeOpen(WEBSITE_URL + '/subscribe')
       clearInput(params)
     },
   }),
@@ -477,16 +402,16 @@ const ALL_COMMANDS: CommandDefinition[] = [
   }),
   ...(CHATGPT_OAUTH_ENABLED
     ? [
-        defineCommand({
-          name: 'connect',
-          aliases: ['connect:chatgpt', 'chatgpt'],
-          handler: (params) => {
-            useChatStore.getState().setInputMode('connect:chatgpt')
-            params.saveToHistory(params.inputValue.trim())
-            clearInput(params)
-          },
-        }),
-      ]
+      defineCommand({
+        name: 'connect',
+        aliases: ['connect:chatgpt', 'chatgpt'],
+        handler: (params) => {
+          useChatStore.getState().setInputMode('connect:chatgpt')
+          params.saveToHistory(params.inputValue.trim())
+          clearInput(params)
+        },
+      }),
+    ]
     : []),
   defineCommand({
     name: 'history',

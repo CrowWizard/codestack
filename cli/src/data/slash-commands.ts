@@ -27,15 +27,13 @@ export interface SlashCommand {
 const MODE_COMMANDS: SlashCommand[] = IS_FREEBUFF
   ? []
   : AGENT_MODES.map((mode) => ({
-      id: `mode:${mode.toLowerCase()}`,
-      label: `mode:${mode.toLowerCase()}`,
-      description: `Switch to ${mode} mode`,
-    }))
+    id: `mode:${mode.toLowerCase()}`,
+    label: `mode:${mode.toLowerCase()}`,
+    description: `Switch to ${mode} mode`,
+  }))
 
 const FREEBUFF_REMOVED_COMMAND_IDS = new Set([
   'connect:claude',
-  'ads:enable',
-  'ads:disable',
   'usage',
   'subscribe',
   'agent:gpt-5',
@@ -60,35 +58,25 @@ const ALL_SLASH_COMMANDS: SlashCommand[] = [
   },
   ...(CLAUDE_OAUTH_ENABLED
     ? [
-        {
-          id: 'connect:claude',
-          label: 'connect:claude (deprecated)',
-          description: 'Claude subscription will be removed March 1st',
-          aliases: ['claude'],
-        },
-      ]
+      {
+        id: 'connect:claude',
+        label: 'connect:claude (deprecated)',
+        description: 'Claude subscription will be removed March 1st',
+        aliases: ['claude'],
+      },
+    ]
     : []),
   ...(CHATGPT_OAUTH_ENABLED
     ? [
-        {
-          id: 'connect',
-          label: 'connect',
-          description: 'Connect your ChatGPT account',
-          aliases: ['connect:chatgpt', 'chatgpt'],
-        },
-      ]
+      {
+        id: 'connect',
+        label: 'connect',
+        description: 'Connect your ChatGPT account',
+        aliases: ['connect:chatgpt', 'chatgpt'],
+      },
+    ]
     : []),
 
-  {
-    id: 'ads:enable',
-    label: 'ads:enable',
-    description: 'Enable contextual ads',
-  },
-  {
-    id: 'ads:disable',
-    label: 'ads:disable',
-    description: 'Disable contextual ads',
-  },
   {
     id: 'init',
     label: 'init',
@@ -208,11 +196,11 @@ const ALL_SLASH_COMMANDS: SlashCommand[] = [
 
 export const SLASH_COMMANDS = IS_FREEBUFF
   ? ALL_SLASH_COMMANDS.filter(
-      (cmd) => !FREEBUFF_REMOVED_COMMAND_IDS.has(cmd.id),
-    )
+    (cmd) => !FREEBUFF_REMOVED_COMMAND_IDS.has(cmd.id),
+  )
   : ALL_SLASH_COMMANDS.filter(
-      (cmd) => !FREEBUFF_ONLY_COMMAND_IDS.has(cmd.id),
-    )
+    (cmd) => !FREEBUFF_ONLY_COMMAND_IDS.has(cmd.id),
+  )
 
 export const SLASHLESS_COMMAND_IDS = new Set(
   SLASH_COMMANDS.filter((cmd) => cmd.implicitCommand).map((cmd) =>

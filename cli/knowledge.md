@@ -451,14 +451,10 @@ In React, spaces and other text are represented as text nodes in the virtual DOM
 ```tsx
 // This causes reconciliation errors!
 <text wrap={false}>
-  {isConnected ? (
-    <>
+  {<>
       <span>■ </span>
       {showText && <span>connected</span>}
-    </>
-  ) : (
-    <ShimmerText text="connecting..." />
-  )}
+    </>}
 </text>
 ```
 
@@ -486,17 +482,10 @@ In React, spaces and other text are represented as text nodes in the virtual DOM
 
 ```tsx
 // This works reliably!
-{
-  isConnected ? (
-    <text wrap={false}>
-      <span>{showText ? '■ ' : '■'}</span>
-      {showText && <span>connected</span>}
-    </text>
-  ) : (
-    <text wrap={false}>
-      <ShimmerText text="connecting..." />
-    </text>
-  )
+{<text wrap={false}>
+    <span>{showText ? '■ ' : '■'}</span>
+    {showText && <span>connected</span>}
+  </text>
 }
 ```
 
@@ -536,16 +525,10 @@ The cleanest solution is to use a direct ternary with separate `<text>` elements
 
 ```tsx
 {
-  isConnected ? (
-    <text wrap={false}>
-      <span>{showText ? '■ ' : '■'}</span>
-      {showText && <span>connected</span>}
-    </text>
-  ) : (
-    <text wrap={false}>
-      <ShimmerText text="connecting..." />
-    </text>
-  )
+  <text wrap={false}>
+    <span>{showText ? '■ ' : '■'}</span>
+    {showText && <span>connected</span>}
+  </text>
 }
 ```
 

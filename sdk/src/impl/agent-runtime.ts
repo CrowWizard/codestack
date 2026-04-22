@@ -1,4 +1,3 @@
-import { trackEvent } from '@codebuff/common/analytics'
 import { env as clientEnvDefault } from '@codebuff/common/env'
 import { getCiEnv } from '@codebuff/common/env-ci'
 import { success } from '@codebuff/common/util/error'
@@ -19,6 +18,7 @@ import type {
 import type { DatabaseAgentCache } from '@codebuff/common/types/contracts/database'
 import type { ClientEnv } from '@codebuff/common/types/contracts/env'
 import type { Logger } from '@codebuff/common/types/contracts/logger'
+import type { TrackEventFn } from '@codebuff/common/types/contracts/analytics'
 
 const databaseAgentCache: DatabaseAgentCache = new Map()
 
@@ -77,9 +77,6 @@ export function getAgentRuntimeImpl(
     // Mutable State
     databaseAgentCache,
 
-    // Analytics
-    trackEvent,
-
     // Other
     logger: logger ?? noopLogger,
     fetch: globalThis.fetch,
@@ -94,6 +91,9 @@ export function getAgentRuntimeImpl(
     sendSubagentChunk,
 
     apiKey,
+
+    // Analytics (no-op in SDK)
+    trackEvent: (() => {}) as TrackEventFn,
   }
 }
 

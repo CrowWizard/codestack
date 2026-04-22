@@ -1,4 +1,3 @@
-import * as analytics from '@codebuff/common/analytics'
 import { TEST_USER_ID } from '@codebuff/common/old-constants'
 import { createTestAgentRuntimeParams } from '@codebuff/common/testing/fixtures/agent-runtime'
 import { promptSuccess } from '@codebuff/common/util/error'
@@ -100,8 +99,8 @@ describe('mainPrompt', () => {
         }) as Response,
     }
 
-    // Mock analytics
-    spyOn(analytics, 'trackEvent').mockImplementation(() => {})
+    // Mock trackEvent via params
+    const mockTrackEvent = mock(() => {})
 
     // Mock processFileBlock
     spyOn(processFileBlockModule, 'processFileBlock').mockImplementation(
@@ -157,6 +156,8 @@ describe('mainPrompt', () => {
       }),
     )
 
+    // Mock trackEvent
+    mainPromptBaseParams.trackEvent = mockTrackEvent
   })
 
   afterEach(() => {

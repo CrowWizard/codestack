@@ -1,4 +1,3 @@
-import { AnalyticsEvent } from '@codebuff/common/constants/analytics-events'
 import { CHATGPT_OAUTH_ENABLED } from '@codebuff/common/constants/chatgpt-oauth'
 import { CLAUDE_OAUTH_ENABLED } from '@codebuff/common/constants/claude-oauth'
 import { runTerminalCommand } from '@codebuff/sdk'
@@ -18,7 +17,6 @@ import { handleChatGptAuthCode } from '../components/chatgpt-connect-banner'
 import { buildInterviewPrompt, buildPlanPrompt, buildReviewPrompt } from './prompt-builders'
 import { getProjectRoot } from '../project-files'
 import { useChatStore } from '../state/chat-store'
-import { trackEvent } from '../utils/analytics'
 import {
   buildBashHistoryMessages,
   createRunTerminalToolResult,
@@ -86,20 +84,6 @@ export function runBashCommand(command: string) {
       const stderr = 'stderr' in value ? value.stderr || '' : ''
       const exitCode = 'exitCode' in value ? value.exitCode ?? 0 : 0
 
-      // Track terminal command completion
-      const durationMs = Date.now() - startTime
-      trackEvent(AnalyticsEvent.TERMINAL_COMMAND_COMPLETED, {
-        command: command.split(' ')[0], // Just the command name, not args
-        exitCode,
-        success: exitCode === 0,
-        ghost,
-        durationMs,
-        hasStdout: stdout.length > 0,
-        hasStderr: stderr.length > 0,
-        stdoutLength: stdout.length,
-        stderrLength: stderr.length,
-      })
-
       if (ghost) {
         updatePendingBashMessage(id, {
           stdout,
@@ -149,21 +133,6 @@ export function runBashCommand(command: string) {
     .catch((error) => {
       const errorMessage =
         error instanceof Error ? error.message : String(error)
-
-      // Track terminal command completion with error
-      const durationMs = Date.now() - startTime
-      trackEvent(AnalyticsEvent.TERMINAL_COMMAND_COMPLETED, {
-        command: command.split(' ')[0], // Just the command name, not args
-        exitCode: 1,
-        success: false,
-        ghost,
-        durationMs,
-        hasStdout: false,
-        hasStderr: true,
-        stdoutLength: 0,
-        stderrLength: errorMessage.length,
-        isException: true,
-      })
 
       if (ghost) {
         updatePendingBashMessage(id, {
@@ -278,23 +247,6 @@ export async function routeUserPrompt(
   // Allow empty messages if there are pending attachments (images or text)
   const hasAttachments = pendingAttachments.length > 0
   if (!trimmed && !hasAttachments) return
-
-  // Track user input complete
-  // Count @ mentions (simple pattern match - more accurate than nothing)
-  const mentionMatches = trimmed.match(/@\S+/g) || []
-  trackEvent(AnalyticsEvent.USER_INPUT_COMPLETE, {
-    inputLength: trimmed.length,
-    mode: agentMode,
-    inputMode,
-    hasImages: pendingImages.length > 0,
-    imageCount: pendingImages.length,
-    hasTextAttachments: pendingTextAttachments.length > 0,
-    textAttachmentCount: pendingTextAttachments.length,
-    isSlashCommand: isSlashCommand(trimmed),
-    isBashCommand: trimmed.startsWith('!'),
-    hasMentions: mentionMatches.length > 0,
-    mentionCount: mentionMatches.length,
-  })
 
   // Handle bash mode commands
   if (inputMode === 'bash') {
@@ -436,17 +388,6 @@ export async function routeUserPrompt(
   if (parsedCommand) {
     const commandDef = findCommand(parsedCommand.command)
     if (commandDef) {
-      const argsLength = parsedCommand.args.length
-      const analyticsPayload = {
-        command: commandDef.name,
-        hasArgs: argsLength > 0,
-        argsLength,
-        agentMode,
-        ...(parsedCommand.implicitCommand ? { implicitCommand: true } : {}),
-      }
-
-      trackEvent(AnalyticsEvent.SLASH_COMMAND_USED, analyticsPayload)
-
       // The command handler (via defineCommand/defineCommandWithArgs factories)
       // is responsible for validating and handling args
       return await commandDef.handler(params, parsedCommand.args)
@@ -482,14 +423,6 @@ export async function routeUserPrompt(
 
   // Unknown slash command - show error
   if (isSlashCommand(trimmed)) {
-    // Track invalid/unknown command (only log command name, not full input for privacy)
-    const attemptedCmd = trimmed.slice(1).split(/\s+/)[0]?.toLowerCase() || ''
-    trackEvent(AnalyticsEvent.INVALID_COMMAND, {
-      attemptedCommand: attemptedCmd,
-      inputLength: trimmed.length,
-      agentMode,
-    })
-
     setMessages((prev) => [
       ...prev,
       getUserMessage(trimmed),

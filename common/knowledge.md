@@ -26,11 +26,6 @@ Credit grants are managed in `packages/billing/src/grant-credits.ts`:
 - Each type has priority level from `GRANT_PRIORITIES`
 - Always include unique `operation_id` for tracking
 
-### Credit Grant Flow
-
-1. Create local credit grant record immediately
-2. Create Stripe grant asynchronously
-3. Webhook updates local grant with Stripe ID when confirmed
 
 ### Monthly Reset Flow
 
