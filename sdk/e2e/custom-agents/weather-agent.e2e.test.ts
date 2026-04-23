@@ -59,7 +59,7 @@ Always report the temperature and conditions clearly.`,
 
   beforeAll(() => {
     if (skipIfNoApiKey()) return
-    client = new CodebuffClient({ apiKey: getApiKey() })
+    client = new CodebuffClient({})
   })
 
   test(

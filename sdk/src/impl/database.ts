@@ -98,7 +98,7 @@ async function fetchWithRetry(
 export async function fetchAgentFromDatabase(
   params: ParamsOf<FetchAgentFromDatabaseFn>,
 ): ReturnType<FetchAgentFromDatabaseFn> {
-  const { apiKey, parsedAgentId, logger } = params
+  const { parsedAgentId, logger } = params
   const { publisherId, agentId, version } = parsedAgentId
 
   const url = new URL(
@@ -112,7 +112,7 @@ export async function fetchAgentFromDatabase(
       {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
         },
       },
       logger,
@@ -185,40 +185,10 @@ export async function fetchAgentFromDatabase(
 export async function startAgentRun(
   params: ParamsOf<StartAgentRunFn>,
 ): ReturnType<StartAgentRunFn> {
-  const { apiKey, agentId, ancestorRunIds, logger } = params
-
-  const url = new URL(`/api/v1/agent-runs`, WEBSITE_URL)
+  const { agentId, logger } = params
 
   try {
-    const response = await fetchWithRetry(
-      url,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          action: 'START',
-          agentId,
-          ancestorRunIds,
-        }),
-      },
-      logger,
-    )
-
-    if (!response.ok) {
-      logger.error({ response }, 'startAgentRun request failed')
-      return null
-    }
-
-    const responseBody = await response.json()
-    if (!responseBody?.runId) {
-      logger.error(
-        { responseBody },
-        'no runId found from startAgentRun request',
-      )
-    }
-    return responseBody?.runId ?? null
+    return crypto.randomUUID()
   } catch (error) {
     logger.error(
       { error: getErrorObject(error), agentId },
@@ -231,55 +201,12 @@ export async function startAgentRun(
 export async function finishAgentRun(
   params: ParamsOf<FinishAgentRunFn>,
 ): ReturnType<FinishAgentRunFn> {
-  const {
-    apiKey,
-    runId,
-    status,
-    totalSteps,
-    directCredits,
-    totalCredits,
-    logger,
-  } = params
-
-  const url = new URL(`/api/v1/agent-runs`, WEBSITE_URL)
-
-  try {
-    const response = await fetchWithRetry(
-      url,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          action: 'FINISH',
-          runId,
-          status,
-          totalSteps,
-          directCredits,
-          totalCredits,
-        }),
-      },
-      logger,
-    )
-
-    if (!response.ok) {
-      logger.error({ response }, 'finishAgentRun request failed')
-      return
-    }
-  } catch (error) {
-    logger.error(
-      { error: getErrorObject(error), runId, status },
-      'finishAgentRun error',
-    )
-  }
 }
 
 export async function addAgentStep(
   params: ParamsOf<AddAgentStepFn>,
 ): ReturnType<AddAgentStepFn> {
   const {
-    apiKey,
     agentRunId,
     stepNumber,
     credits,
@@ -291,42 +218,8 @@ export async function addAgentStep(
     logger,
   } = params
 
-  const url = new URL(`/api/v1/agent-runs/${agentRunId}/steps`, WEBSITE_URL)
-
   try {
-    const response = await fetchWithRetry(
-      url,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          stepNumber,
-          credits,
-          childRunIds,
-          messageId,
-          status,
-          errorMessage,
-          startTime,
-        }),
-      },
-      logger,
-    )
-
-    const responseBody = await response.json()
-    if (!response.ok) {
-      logger.error({ responseBody }, 'addAgentStep request failed')
-      return null
-    }
-
-    if (!responseBody?.stepId) {
-      logger.error(
-        { responseBody },
-        'no stepId found from addAgentStep request',
-      )
-    }
-    return responseBody.stepId ?? null
+    return crypto.randomUUID()
   } catch (error) {
     logger.error(
       {

@@ -66,6 +66,9 @@ const codestackConfigSchema = z.object({
   // Each mode must define 'base' as the default model.
   mapping: z.record(z.string(), modeMappingSchema).optional(),
   defaultMode: z.string().optional(),
+  // Default model to use when no mapping is found for a cost mode.
+  // Falls back to 'openai/gpt-5.4' if not configured.
+  defaultModel: z.string().optional(),
   searchProviders: z.record(z.string(), z.string().min(1)).optional(),
 })
 
@@ -139,7 +142,7 @@ function getConfigPath(): string {
   if (!homeDir) {
     throw new Error('Cannot determine home directory for codestack config')
   }
-  return join(homeDir, '.config', 'codestack', 'config.json')
+  return join(homeDir, '.config', 'manicode', 'config.json')
 }
 
 // ============================================================================
@@ -264,4 +267,41 @@ export function getModelTopP(model: string): number | undefined {
 export function getModelTopK(model: string): number | undefined {
   const config = getModelConfig(model)
   return config?.top_k
+}
+
+/**
+ * Resolve the model to use for a given cost mode and optional agent-specific key.
+ * Looks up the mapping in the config file, falling back to defaultModel if not found.
+ * If defaultModel is also not configured, falls back to 'openai/gpt-5.4'.
+ *
+ * @param costMode - The cost mode to look up (e.g., 'free', 'normal', 'max')
+ * @param agentMappingKey - Optional agent-specific key for more granular mapping
+ * @returns The resolved model string
+ */
+export function resolveModelFromMapping(
+  costMode: string,
+  agentMappingKey?: string,
+): string {
+  const config = loadCodestackConfig()
+
+  // Try to get the mode mapping
+  const modeMapping = config.mapping?.[costMode]
+  if (modeMapping) {
+    // If an agent-specific key is provided, check for agent-specific override first
+    if (agentMappingKey && modeMapping[agentMappingKey]) {
+      return modeMapping[agentMappingKey]
+    }
+    // Fall back to 'base' model for this mode
+    if (modeMapping.base) {
+      return modeMapping.base
+    }
+  }
+
+  // If no mapping found, try defaultModel
+  if (config.defaultModel) {
+    return config.defaultModel
+  }
+
+  // Final fallback: use a sensible default
+  return 'openai/gpt-5.4'
 }

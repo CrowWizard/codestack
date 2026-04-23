@@ -198,8 +198,6 @@ export async function fetchClaudeOAuthResetTime(accessToken: string): Promise<Da
  * Parameters for requesting a model.
  */
 export interface ModelRequestParams {
-  /** Codebuff API key for backend authentication */
-  apiKey: string
   /** Model ID (OpenRouter format, e.g., "anthropic/claude-sonnet-4") */
   model: string
   /** If true, skip Claude OAuth and use Codebuff backend (for fallback after rate limit) */
@@ -249,7 +247,7 @@ type OpenRouterUsageAccounting = {
  * This function is async because it may need to refresh the OAuth token.
  */
 export async function getModelForRequest(params: ModelRequestParams): Promise<ModelResult> {
-  const { apiKey, model, skipClaudeOAuth, skipChatGptOAuth, costMode } = params
+  const { model, skipClaudeOAuth, skipChatGptOAuth, costMode } = params
   const resolvedModel = model
 
   if (!(isClaudeModel(model) || isOpenAIProviderModel(model) || isChatGptOAuthModelAllowed(model))) {
@@ -313,12 +311,11 @@ export async function getModelForRequest(params: ModelRequestParams): Promise<Mo
     }
   }
 
-  // Default: use Codebuff backend
-  return {
-    model: createCodebuffBackendModel(apiKey, model),
-    isClaudeOAuth: false,
-    isChatGptOAuth: false,
-  }
+  // Default: use Codebuff backend (no longer supported without API key)
+  throw new Error(
+    `No API key configured for model "${model}". ` +
+    `Please configure a provider key in ~/.config/manicode/config.json or connect an OAuth provider.`,
+  )
 }
 
 /**
@@ -446,78 +443,6 @@ function createAnthropicOAuthModel(
   return anthropic(anthropicModelId) as unknown as LanguageModel
 }
 
-/**
- * Create a model that routes through the Codebuff backend.
- * This is the existing behavior - requests go to Codebuff backend which forwards to OpenRouter.
- */
-function createCodebuffBackendModel(
-  apiKey: string,
-  model: string,
-): LanguageModel {
-  const openrouterUsage: OpenRouterUsageAccounting = {
-    cost: null,
-    costDetails: {
-      upstreamInferenceCost: null,
-    },
-  }
-
-  const openrouterApiKey = getByokOpenrouterApiKeyFromEnv()
-
-  return new OpenAICompatibleChatLanguageModel(model, {
-    provider: 'codebuff',
-    url: ({ path: endpoint }) =>
-      new URL(path.join('/api/v1', endpoint), WEBSITE_URL).toString(),
-    headers: () => ({
-      Authorization: `Bearer ${apiKey}`,
-      'user-agent': `ai-sdk/openai-compatible/${VERSION}/codebuff`,
-      ...(openrouterApiKey && { [BYOK_OPENROUTER_HEADER]: openrouterApiKey }),
-    }),
-    metadataExtractor: {
-      extractMetadata: async ({ parsedBody }: { parsedBody: any }) => {
-        if (openrouterApiKey !== undefined) {
-          return { codebuff: { usage: openrouterUsage } }
-        }
-
-        if (typeof parsedBody?.usage?.cost === 'number') {
-          openrouterUsage.cost = parsedBody.usage.cost
-        }
-        if (
-          typeof parsedBody?.usage?.cost_details?.upstream_inference_cost ===
-          'number'
-        ) {
-          openrouterUsage.costDetails.upstreamInferenceCost =
-            parsedBody.usage.cost_details.upstream_inference_cost
-        }
-        return { codebuff: { usage: openrouterUsage } }
-      },
-      createStreamExtractor: () => ({
-        processChunk: (parsedChunk: any) => {
-          if (openrouterApiKey !== undefined) {
-            return
-          }
-
-          if (typeof parsedChunk?.usage?.cost === 'number') {
-            openrouterUsage.cost = parsedChunk.usage.cost
-          }
-          if (
-            typeof parsedChunk?.usage?.cost_details?.upstream_inference_cost ===
-            'number'
-          ) {
-            openrouterUsage.costDetails.upstreamInferenceCost =
-              parsedChunk.usage.cost_details.upstream_inference_cost
-          }
-        },
-        buildMetadata: () => {
-          return { codebuff: { usage: openrouterUsage } }
-        },
-      }),
-    },
-    fetch: undefined,
-    includeUsage: undefined,
-    supportsStructuredOutputs: true,
-  })
-}
-
 // ============================================================================
 // Codestack BYOK Direct Provider Routing
 // ============================================================================
@@ -575,7 +500,7 @@ function createCodeStackDirectModel(model: string): LanguageModel {
     const providerName = getProviderName(model)
     throw new Error(
       `No API key configured for provider "${providerName}" (model: "${model}"). ` +
-      `Add "${providerName}" to the "keys" section of ~/.config/codestack/config.json.`,
+      `Add "${providerName}" to the "keys" section of ~/.config/maincode/config.json.`,
     )
   }
 
@@ -617,12 +542,19 @@ function createCodeStackDirectModel(model: string): LanguageModel {
     return customProvider.chatModel(modelId) as unknown as LanguageModel
   }
 
-  const openai = createOpenAI({
-    apiKey,
-    baseURL: resolvedBaseURL,
-    ...(headers ? { defaultHeaders: headers } : {}),
+  // For standard OpenAI style, use OpenAI-compatible model to avoid version conflicts
+  // This works with any OpenAI-compatible API and avoids AI SDK v5 version constraints
+  return new OpenAICompatibleChatLanguageModel(modelId, {
+    provider: providerName,
+    url: () => `${resolvedBaseURL}/chat/completions`,
+    headers: () => ({
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      ...(headers ?? {}),
+    }),
     ...(mergedExtraBody ? { extraBody: mergedExtraBody } : {}),
-  })
-  return openai(modelId) as unknown as LanguageModel
+    supportsStructuredOutputs: true,
+    includeUsage: true,
+  }) as unknown as LanguageModel
 }
 

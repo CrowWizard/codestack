@@ -3,8 +3,7 @@ import fs from 'fs'
 import path from 'path'
 
 
-import { API_KEY_ENV_VAR } from '@codebuff/common/old-constants'
-import { CodebuffClient, getUserCredentials } from '@codebuff/sdk'
+import { CodebuffClient } from '@codebuff/sdk'
 import { mapLimit } from 'async'
 import { createTwoFilesPatch } from 'diff'
 
@@ -142,9 +141,7 @@ export async function generateEvalFileV2({
 }): Promise<void> {
   const actualRepoName = extractRepoNameFromUrl(repoUrl)
 
-  const client = new CodebuffClient({
-    apiKey: process.env[API_KEY_ENV_VAR] || getUserCredentials()?.authToken,
-  })
+  const client = new CodebuffClient({})
 
   const finalOutputPath =
     outputPath || path.join(__dirname, `eval-${actualRepoName}-v2.json`)

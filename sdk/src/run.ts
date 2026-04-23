@@ -185,7 +185,6 @@ export async function run(options: RunExecutionOptions): Promise<RunState> {
 }
 
 async function runOnce({
-  apiKey,
   fingerprintId,
   userId,
 
@@ -373,7 +372,6 @@ async function runOnce({
 
   const agentRuntimeImpl = getAgentRuntimeImpl({
     logger,
-    apiKey,
     handleStepsLogChunk: () => {
       // Does nothing for now
     },

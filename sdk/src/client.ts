@@ -1,4 +1,3 @@
-import { getCodebuffApiKeyFromEnv } from './env'
 import { run } from './run'
 
 import type { RunOptions, CodebuffClientOptions } from './run'
@@ -6,20 +5,11 @@ import type { RunState } from './run-state'
 
 export class CodebuffClient {
   public options: CodebuffClientOptions & {
-    apiKey: string
     fingerprintId: string
   }
 
   constructor(options: CodebuffClientOptions) {
-    const foundApiKey = options.apiKey ?? getCodebuffApiKeyFromEnv()
-    if (!foundApiKey) {
-      throw new Error(
-        `Codebuff API key not found. Please provide an apiKey in the constructor of CodebuffClient.`,
-      )
-    }
-
     this.options = {
-      apiKey: foundApiKey,
       handleEvent: (event) => {
         if (event.type === 'error') {
           throw new Error(

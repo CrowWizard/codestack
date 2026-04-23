@@ -94,26 +94,6 @@ export const TEST_AGENT_RUNTIME_IMPL = Object.freeze({
   trackEvent: () => { },
   logger: testLogger,
   fetch: testFetch,
-  getUserInfoFromApiKey: async <T extends string>({
-    fields,
-  }: {
-    apiKey: string
-    fields: readonly T[]
-  }) => {
-    const user = {
-      id: 'test-user-id',
-      email: 'test@example.com',
-      discord_id: 'test-discord-id',
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    } as const
-    return Object.fromEntries(
-      fields.map((field) => [field, user[field as keyof typeof user]]),
-    ) as {
-        [K in T]: (typeof user)[K & keyof typeof user]
-      }
-  },
   fetchAgentFromDatabase: async () => null,
   startAgentRun: async () => 'test-agent-run-id',
   finishAgentRun: async () => { },
@@ -154,7 +134,6 @@ export const TEST_AGENT_RUNTIME_IMPL = Object.freeze({
   sendAction: () => {
     throw new Error('sendAction not implemented in test runtime')
   },
-  apiKey: 'test-api-key',
 })
 
 export interface TestAgentRuntimeParams {
@@ -190,12 +169,10 @@ export interface TestAgentRuntimeParams {
   trackEvent: ReturnType<typeof mock>
   clientEnv: typeof testClientEnv
   ciEnv: typeof testCiEnv
-  apiKey: string
   fetch: typeof testFetch
   fetchAgentFromDatabase: ReturnType<typeof mock>
   databaseAgentCache: Map<string, null>
   consumeCreditsWithFallback: ReturnType<typeof mock>
-  getUserInfoFromApiKey: ReturnType<typeof mock>
   handleStepsLogChunk: ReturnType<typeof mock>
   requestOptionalFile: ReturnType<typeof mock>
   sendSubagentChunk: ReturnType<typeof mock>
@@ -257,19 +234,12 @@ export function createTestAgentRuntimeParams(
     trackEvent: overrides.trackEvent ?? mock(() => { }),
     clientEnv: overrides.clientEnv ?? testClientEnv,
     ciEnv: overrides.ciEnv ?? testCiEnv,
-    apiKey: overrides.apiKey ?? 'test-api-key',
     fetch: overrides.fetch ?? testFetch,
     fetchAgentFromDatabase:
       overrides.fetchAgentFromDatabase ?? mock(async () => null),
     databaseAgentCache: overrides.databaseAgentCache ?? new Map<string, null>(),
     consumeCreditsWithFallback:
       overrides.consumeCreditsWithFallback ?? mock(async () => { }),
-    getUserInfoFromApiKey:
-      overrides.getUserInfoFromApiKey ??
-      mock(async () => ({
-        id: 'test-user-id',
-        email: 'test@example.com',
-      })),
     handleStepsLogChunk: overrides.handleStepsLogChunk ?? mock(() => { }),
     requestOptionalFile:
       overrides.requestOptionalFile ?? mock(async () => null),
@@ -311,15 +281,10 @@ export function createTestAgentRuntimeDeps(): Omit<
     trackEvent: mock(() => { }),
     clientEnv: testClientEnv,
     ciEnv: testCiEnv,
-    apiKey: 'test-api-key',
     fetch: testFetch,
     fetchAgentFromDatabase: mock(async () => null),
     databaseAgentCache: new Map<string, null>(),
     consumeCreditsWithFallback: mock(async () => { }),
-    getUserInfoFromApiKey: mock(async () => ({
-      id: 'test-user-id',
-      email: 'test@example.com',
-    })),
     handleStepsLogChunk: mock(() => { }),
     requestOptionalFile: mock(async () => null),
     sendSubagentChunk: mock(() => { }),

@@ -8,7 +8,6 @@
 import { BYOK_OPENROUTER_ENV_VAR } from '@codebuff/common/constants/byok'
 import { CHATGPT_OAUTH_TOKEN_ENV_VAR } from '@codebuff/common/constants/chatgpt-oauth'
 import { CLAUDE_OAUTH_TOKEN_ENV_VAR } from '@codebuff/common/constants/claude-oauth'
-import { API_KEY_ENV_VAR } from '@codebuff/common/constants/paths'
 import { getBaseEnv } from '@codebuff/common/env-process'
 
 import type { SdkEnv } from './types/env'
@@ -30,10 +29,6 @@ export const getSdkEnv = (): SdkEnv => ({
   OVERRIDE_PLATFORM: process.env.OVERRIDE_PLATFORM,
   OVERRIDE_ARCH: process.env.OVERRIDE_ARCH,
 })
-
-export const getCodebuffApiKeyFromEnv = (): string | undefined => {
-  return process.env[API_KEY_ENV_VAR]
-}
 
 export const getSystemProcessEnv = (): NodeJS.ProcessEnv => {
   return process.env

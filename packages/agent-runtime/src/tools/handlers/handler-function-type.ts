@@ -33,7 +33,6 @@ export type CodebuffToolHandlerFunction<T extends ToolName = ToolName> = (
     agentStepId: string
     agentTemplate: AgentTemplate
     ancestorRunIds: string[]
-    apiKey: string
     clientSessionId: string
     fetch: typeof globalThis.fetch
     fileContext: ProjectFileContext

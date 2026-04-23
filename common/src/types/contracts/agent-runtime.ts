@@ -66,6 +66,4 @@ export type AgentRuntimeScopedDeps = {
   requestOptionalFile: RequestOptionalFileFn
   sendAction: SendActionFn
   sendSubagentChunk: SendSubagentChunkFn
-
-  apiKey: string
 }

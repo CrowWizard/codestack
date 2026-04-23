@@ -23,14 +23,6 @@ describe('Run Cancellation Handling', () => {
   })
 
   it('does not duplicate user message when server responds with session state', async () => {
-    spyOn(databaseModule, 'getUserInfoFromApiKey').mockResolvedValue({
-      id: 'user-123',
-      email: 'test@example.com',
-      discord_id: null,
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    })
     spyOn(databaseModule, 'fetchAgentFromDatabase').mockResolvedValue(null)
     spyOn(databaseModule, 'startAgentRun').mockResolvedValue('run-1')
     spyOn(databaseModule, 'finishAgentRun').mockResolvedValue(undefined)
@@ -69,9 +61,7 @@ describe('Run Cancellation Handling', () => {
       },
     )
 
-    const client = new CodebuffClient({
-      apiKey: 'test-key',
-    })
+    const client = new CodebuffClient({})
 
     const result = await client.run({
       agent: 'base2',
@@ -91,14 +81,6 @@ describe('Run Cancellation Handling', () => {
   })
 
   it('does not duplicate user message when cancelled and server already processed the prompt', async () => {
-    spyOn(databaseModule, 'getUserInfoFromApiKey').mockResolvedValue({
-      id: 'user-123',
-      email: 'test@example.com',
-      discord_id: null,
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    })
     spyOn(databaseModule, 'fetchAgentFromDatabase').mockResolvedValue(null)
     spyOn(databaseModule, 'startAgentRun').mockResolvedValue('run-1')
     spyOn(databaseModule, 'finishAgentRun').mockResolvedValue(undefined)
@@ -157,9 +139,7 @@ describe('Run Cancellation Handling', () => {
       },
     )
 
-    const client = new CodebuffClient({
-      apiKey: 'test-key',
-    })
+    const client = new CodebuffClient({})
 
     const result = await client.run({
       agent: 'base2',
@@ -185,14 +165,6 @@ describe('Run Cancellation Handling', () => {
   })
 
   it('extracts error code and message from AI SDK responseBody on 403', async () => {
-    spyOn(databaseModule, 'getUserInfoFromApiKey').mockResolvedValue({
-      id: 'user-123',
-      email: 'test@example.com',
-      discord_id: null,
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    })
     spyOn(databaseModule, 'fetchAgentFromDatabase').mockResolvedValue(null)
     spyOn(databaseModule, 'startAgentRun').mockResolvedValue('run-1')
     spyOn(databaseModule, 'finishAgentRun').mockResolvedValue(undefined)
@@ -208,9 +180,7 @@ describe('Run Cancellation Handling', () => {
 
     spyOn(mainPromptModule, 'callMainPrompt').mockRejectedValue(apiError)
 
-    const client = new CodebuffClient({
-      apiKey: 'test-key',
-    })
+    const client = new CodebuffClient({})
 
     const result = await client.run({
       agent: 'base2',
@@ -227,14 +197,6 @@ describe('Run Cancellation Handling', () => {
   })
 
   it('extracts error code from responseBody for account_suspended 403', async () => {
-    spyOn(databaseModule, 'getUserInfoFromApiKey').mockResolvedValue({
-      id: 'user-123',
-      email: 'test@example.com',
-      discord_id: null,
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    })
     spyOn(databaseModule, 'fetchAgentFromDatabase').mockResolvedValue(null)
     spyOn(databaseModule, 'startAgentRun').mockResolvedValue('run-1')
     spyOn(databaseModule, 'finishAgentRun').mockResolvedValue(undefined)
@@ -249,9 +211,7 @@ describe('Run Cancellation Handling', () => {
 
     spyOn(mainPromptModule, 'callMainPrompt').mockRejectedValue(apiError)
 
-    const client = new CodebuffClient({
-      apiKey: 'test-key',
-    })
+    const client = new CodebuffClient({})
 
     const result = await client.run({
       agent: 'base2',
@@ -265,14 +225,6 @@ describe('Run Cancellation Handling', () => {
   })
 
   it('falls back to error.message when responseBody is not valid JSON', async () => {
-    spyOn(databaseModule, 'getUserInfoFromApiKey').mockResolvedValue({
-      id: 'user-123',
-      email: 'test@example.com',
-      discord_id: null,
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    })
     spyOn(databaseModule, 'fetchAgentFromDatabase').mockResolvedValue(null)
     spyOn(databaseModule, 'startAgentRun').mockResolvedValue('run-1')
     spyOn(databaseModule, 'finishAgentRun').mockResolvedValue(undefined)
@@ -284,9 +236,7 @@ describe('Run Cancellation Handling', () => {
 
     spyOn(mainPromptModule, 'callMainPrompt').mockRejectedValue(apiError)
 
-    const client = new CodebuffClient({
-      apiKey: 'test-key',
-    })
+    const client = new CodebuffClient({})
 
     const result = await client.run({
       agent: 'base2',
@@ -300,14 +250,6 @@ describe('Run Cancellation Handling', () => {
   })
 
   it('preserves user message when callMainPrompt throws an error', async () => {
-    spyOn(databaseModule, 'getUserInfoFromApiKey').mockResolvedValue({
-      id: 'user-123',
-      email: 'test@example.com',
-      discord_id: null,
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    })
     spyOn(databaseModule, 'fetchAgentFromDatabase').mockResolvedValue(null)
     spyOn(databaseModule, 'startAgentRun').mockResolvedValue('run-1')
     spyOn(databaseModule, 'finishAgentRun').mockResolvedValue(undefined)
@@ -318,9 +260,7 @@ describe('Run Cancellation Handling', () => {
       new Error('Network connection failed'),
     )
 
-    const client = new CodebuffClient({
-      apiKey: 'test-key',
-    })
+    const client = new CodebuffClient({})
 
     const result = await client.run({
       agent: 'base2',
@@ -351,14 +291,6 @@ describe('Run Cancellation Handling', () => {
   })
 
   it('does not add empty assistant message when no streaming content', async () => {
-    spyOn(databaseModule, 'getUserInfoFromApiKey').mockResolvedValue({
-      id: 'user-123',
-      email: 'test@example.com',
-      discord_id: null,
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    })
     spyOn(databaseModule, 'fetchAgentFromDatabase').mockResolvedValue(null)
     spyOn(databaseModule, 'startAgentRun').mockResolvedValue('run-1')
     spyOn(databaseModule, 'finishAgentRun').mockResolvedValue(undefined)
@@ -405,9 +337,7 @@ describe('Run Cancellation Handling', () => {
       },
     )
 
-    const client = new CodebuffClient({
-      apiKey: 'test-key',
-    })
+    const client = new CodebuffClient({})
 
     const result = await client.run({
       agent: 'base2',
@@ -432,14 +362,6 @@ describe('Run Cancellation Handling', () => {
   })
 
   it('preserves user message with USER_PROMPT tag when error thrown during callMainPrompt', async () => {
-    spyOn(databaseModule, 'getUserInfoFromApiKey').mockResolvedValue({
-      id: 'user-123',
-      email: 'test@example.com',
-      discord_id: null,
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    })
     spyOn(databaseModule, 'fetchAgentFromDatabase').mockResolvedValue(null)
     spyOn(databaseModule, 'startAgentRun').mockResolvedValue('run-1')
     spyOn(databaseModule, 'finishAgentRun').mockResolvedValue(undefined)
@@ -464,9 +386,7 @@ describe('Run Cancellation Handling', () => {
       },
     )
 
-    const client = new CodebuffClient({
-      apiKey: 'test-key',
-    })
+    const client = new CodebuffClient({})
 
     const result = await client.run({
       agent: 'base2',
@@ -502,14 +422,6 @@ describe('Run Cancellation Handling', () => {
   })
 
   it('preserves session state from server when aborted and appends interruption message', async () => {
-    spyOn(databaseModule, 'getUserInfoFromApiKey').mockResolvedValue({
-      id: 'user-123',
-      email: 'test@example.com',
-      discord_id: null,
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    })
     spyOn(databaseModule, 'fetchAgentFromDatabase').mockResolvedValue(null)
     spyOn(databaseModule, 'startAgentRun').mockResolvedValue('run-1')
     spyOn(databaseModule, 'finishAgentRun').mockResolvedValue(undefined)
@@ -590,9 +502,7 @@ describe('Run Cancellation Handling', () => {
       },
     )
 
-    const client = new CodebuffClient({
-      apiKey: 'test-key',
-    })
+    const client = new CodebuffClient({})
 
     const result = await client.run({
       agent: 'base2',
@@ -630,14 +540,6 @@ describe('Run Cancellation Handling', () => {
   })
 
   it('interruption message uses withSystemTags format', async () => {
-    spyOn(databaseModule, 'getUserInfoFromApiKey').mockResolvedValue({
-      id: 'user-123',
-      email: 'test@example.com',
-      discord_id: null,
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    })
     spyOn(databaseModule, 'fetchAgentFromDatabase').mockResolvedValue(null)
     spyOn(databaseModule, 'startAgentRun').mockResolvedValue('run-1')
     spyOn(databaseModule, 'finishAgentRun').mockResolvedValue(undefined)
@@ -680,9 +582,7 @@ describe('Run Cancellation Handling', () => {
       },
     )
 
-    const client = new CodebuffClient({
-      apiKey: 'test-key',
-    })
+    const client = new CodebuffClient({})
 
     const result = await client.run({
       agent: 'base2',
@@ -726,9 +626,7 @@ describe('Run Cancellation Handling', () => {
     // Abort before the run starts
     abortController.abort()
 
-    const client = new CodebuffClient({
-      apiKey: 'test-key',
-    })
+    const client = new CodebuffClient({})
 
     const result = await client.run({
       agent: 'base2',
@@ -741,14 +639,6 @@ describe('Run Cancellation Handling', () => {
   })
 
   it('does not add interruption message when not aborted', async () => {
-    spyOn(databaseModule, 'getUserInfoFromApiKey').mockResolvedValue({
-      id: 'user-123',
-      email: 'test@example.com',
-      discord_id: null,
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    })
     spyOn(databaseModule, 'fetchAgentFromDatabase').mockResolvedValue(null)
     spyOn(databaseModule, 'startAgentRun').mockResolvedValue('run-1')
     spyOn(databaseModule, 'finishAgentRun').mockResolvedValue(undefined)
@@ -787,9 +677,7 @@ describe('Run Cancellation Handling', () => {
       },
     )
 
-    const client = new CodebuffClient({
-      apiKey: 'test-key',
-    })
+    const client = new CodebuffClient({})
 
     // Run without aborting
     const result = await client.run({
@@ -807,14 +695,6 @@ describe('Run Cancellation Handling', () => {
   })
 
   it('preserves message history across cancelled run and subsequent run', async () => {
-    spyOn(databaseModule, 'getUserInfoFromApiKey').mockResolvedValue({
-      id: 'user-123',
-      email: 'test@example.com',
-      discord_id: null,
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    })
     spyOn(databaseModule, 'fetchAgentFromDatabase').mockResolvedValue(null)
     spyOn(databaseModule, 'startAgentRun').mockResolvedValue('run-1')
     spyOn(databaseModule, 'finishAgentRun').mockResolvedValue(undefined)
@@ -873,9 +753,7 @@ describe('Run Cancellation Handling', () => {
       },
     )
 
-    const client = new CodebuffClient({
-      apiKey: 'test-key',
-    })
+    const client = new CodebuffClient({})
 
     // Run 1: cancelled mid-stream
     const firstRunResult = await client.run({
@@ -897,14 +775,6 @@ describe('Run Cancellation Handling', () => {
 
     // Now set up mock for the second run
     mock.restore()
-    spyOn(databaseModule, 'getUserInfoFromApiKey').mockResolvedValue({
-      id: 'user-123',
-      email: 'test@example.com',
-      discord_id: null,
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    })
     spyOn(databaseModule, 'fetchAgentFromDatabase').mockResolvedValue(null)
     spyOn(databaseModule, 'startAgentRun').mockResolvedValue('run-2')
     spyOn(databaseModule, 'finishAgentRun').mockResolvedValue(undefined)
@@ -980,14 +850,6 @@ describe('Run Cancellation Handling', () => {
   })
 
   it('preserves session state even when abort happens mid-stream', async () => {
-    spyOn(databaseModule, 'getUserInfoFromApiKey').mockResolvedValue({
-      id: 'user-123',
-      email: 'test@example.com',
-      discord_id: null,
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    })
     spyOn(databaseModule, 'fetchAgentFromDatabase').mockResolvedValue(null)
     spyOn(databaseModule, 'startAgentRun').mockResolvedValue('run-1')
     spyOn(databaseModule, 'finishAgentRun').mockResolvedValue(undefined)
@@ -1085,9 +947,7 @@ describe('Run Cancellation Handling', () => {
       },
     )
 
-    const client = new CodebuffClient({
-      apiKey: 'test-key',
-    })
+    const client = new CodebuffClient({})
 
     const result = await client.run({
       agent: 'base2',

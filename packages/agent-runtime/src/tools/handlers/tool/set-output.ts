@@ -21,7 +21,6 @@ export const handleSetOutput = (async (params: {
   toolCall: CodebuffToolCall<ToolName>
 
   agentState: AgentState
-  apiKey: string
   databaseAgentCache: Map<string, AgentTemplate | null>
   localAgentTemplates: Record<string, AgentTemplate>
   logger: Logger

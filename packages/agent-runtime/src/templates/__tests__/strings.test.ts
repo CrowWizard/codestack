@@ -116,7 +116,6 @@ describe('getAgentPrompt', () => {
         agentTemplates,
         additionalToolDefinitions: async () => ({}),
         logger: createMockLogger(),
-        apiKey: TEST_AGENT_RUNTIME_IMPL.apiKey,
         databaseAgentCache: TEST_AGENT_RUNTIME_IMPL.databaseAgentCache,
         fetchAgentFromDatabase: TEST_AGENT_RUNTIME_IMPL.fetchAgentFromDatabase,
       })
@@ -154,7 +153,6 @@ describe('getAgentPrompt', () => {
         agentTemplates,
         additionalToolDefinitions: async () => ({}),
         logger: createMockLogger(),
-        apiKey: TEST_AGENT_RUNTIME_IMPL.apiKey,
         databaseAgentCache: TEST_AGENT_RUNTIME_IMPL.databaseAgentCache,
         fetchAgentFromDatabase: TEST_AGENT_RUNTIME_IMPL.fetchAgentFromDatabase,
       })
@@ -200,7 +198,6 @@ describe('getAgentPrompt', () => {
         agentTemplates,
         additionalToolDefinitions: async () => ({}),
         logger: createMockLogger(),
-        apiKey: TEST_AGENT_RUNTIME_IMPL.apiKey,
         databaseAgentCache: TEST_AGENT_RUNTIME_IMPL.databaseAgentCache,
         fetchAgentFromDatabase: TEST_AGENT_RUNTIME_IMPL.fetchAgentFromDatabase,
       })
@@ -231,7 +228,6 @@ describe('getAgentPrompt', () => {
         agentTemplates,
         additionalToolDefinitions: async () => ({}),
         logger: createMockLogger(),
-        apiKey: TEST_AGENT_RUNTIME_IMPL.apiKey,
         databaseAgentCache: TEST_AGENT_RUNTIME_IMPL.databaseAgentCache,
         fetchAgentFromDatabase: TEST_AGENT_RUNTIME_IMPL.fetchAgentFromDatabase,
       })
@@ -269,7 +265,6 @@ describe('getAgentPrompt', () => {
         agentTemplates,
         additionalToolDefinitions: async () => ({}),
         logger: createMockLogger(),
-        apiKey: TEST_AGENT_RUNTIME_IMPL.apiKey,
         databaseAgentCache: TEST_AGENT_RUNTIME_IMPL.databaseAgentCache,
         fetchAgentFromDatabase: TEST_AGENT_RUNTIME_IMPL.fetchAgentFromDatabase,
       })
@@ -286,7 +281,6 @@ describe('getAgentPrompt', () => {
         agentTemplates,
         additionalToolDefinitions: async () => ({}),
         logger: createMockLogger(),
-        apiKey: TEST_AGENT_RUNTIME_IMPL.apiKey,
         databaseAgentCache: TEST_AGENT_RUNTIME_IMPL.databaseAgentCache,
         fetchAgentFromDatabase: TEST_AGENT_RUNTIME_IMPL.fetchAgentFromDatabase,
       })

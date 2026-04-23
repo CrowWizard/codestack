@@ -16,14 +16,6 @@ describe('CodebuffClient handleEvent / handleStreamChunk', () => {
   })
 
   it('streams subagent start/finish once and forwards subagent chunks to handleStreamChunk', async () => {
-    spyOn(databaseModule, 'getUserInfoFromApiKey').mockResolvedValue({
-      id: 'user-123',
-      email: 'test@example.com',
-      discord_id: null,
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    })
     spyOn(databaseModule, 'fetchAgentFromDatabase').mockResolvedValue(null)
     spyOn(databaseModule, 'startAgentRun').mockResolvedValue('run-1')
     spyOn(databaseModule, 'finishAgentRun').mockResolvedValue(undefined)
@@ -111,9 +103,7 @@ describe('CodebuffClient handleEvent / handleStreamChunk', () => {
     const events: PrintModeEvent[] = []
     const streamChunks: StreamChunk[] = []
 
-    const client = new CodebuffClient({
-      apiKey: 'test-key',
-    })
+    const client = new CodebuffClient({})
 
     const result = await client.run({
       agent: 'base2',

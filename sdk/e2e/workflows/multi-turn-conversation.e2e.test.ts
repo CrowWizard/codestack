@@ -20,7 +20,7 @@ describe('Workflows: Multi-Turn Conversation', () => {
 
   beforeAll(() => {
     if (skipIfNoApiKey()) return
-    client = new CodebuffClient({ apiKey: getApiKey() })
+    client = new CodebuffClient({})
   })
 
   test(

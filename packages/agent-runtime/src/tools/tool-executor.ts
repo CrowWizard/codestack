@@ -237,7 +237,6 @@ export async function executeToolCall<T extends ToolName>(
               fetchAgentFromDatabase: params.fetchAgentFromDatabase,
               databaseAgentCache: params.databaseAgentCache,
               logger,
-              apiKey: params.apiKey,
             })
             if (!template) {
               if (toolNames.includes(agentTypeStr as ToolName)) {

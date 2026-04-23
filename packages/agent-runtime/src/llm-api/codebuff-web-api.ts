@@ -42,12 +42,11 @@ const callCodebuffV1 = async (params: {
   logger: Logger
   env: CodebuffWebApiEnv
   baseUrl?: string
-  apiKey?: string
   requestName: 'web-search' | 'docs-search'
 }): Promise<{ json?: unknown; error?: string; creditsUsed?: number }> => {
   const { endpoint, payload, fetch, logger, env, requestName } = params
   const baseUrl = params.baseUrl ?? (env.clientEnv as any).NEXT_PUBLIC_CODEBUFF_APP_URL ?? 'http://127.0.0.1:3000'
-  const apiKey = params.apiKey ?? env.ciEnv.CODEBUFF_API_KEY
+  const apiKey = env.ciEnv.CODEBUFF_API_KEY
 
   if (!baseUrl || !apiKey) {
     return { error: 'Missing Codebuff base URL or API key' }
@@ -162,7 +161,6 @@ export async function callWebSearchAPI(params: {
   logger: Logger
   env: CodebuffWebApiEnv
   baseUrl?: string
-  apiKey?: string
 }): Promise<{ result?: string; error?: string; creditsUsed?: number }> {
   const { query, depth = 'standard', repoUrl, fetch, logger, env } = params
   const payload = { query, depth, ...(repoUrl ? { repoUrl } : {}) }
@@ -174,7 +172,6 @@ export async function callWebSearchAPI(params: {
     logger,
     env,
     baseUrl: params.baseUrl,
-    apiKey: params.apiKey,
     requestName: 'web-search',
   })
   if (res.error) return { error: res.error }
@@ -197,7 +194,6 @@ export async function callDocsSearchAPI(params: {
   logger: Logger
   env: CodebuffWebApiEnv
   baseUrl?: string
-  apiKey?: string
 }): Promise<{ documentation?: string; error?: string; creditsUsed?: number }> {
   const { libraryTitle, topic, maxTokens, repoUrl, fetch, logger, env } = params
   const payload: Record<string, unknown> = { libraryTitle }
@@ -212,7 +208,6 @@ export async function callDocsSearchAPI(params: {
     logger,
     env,
     baseUrl: params.baseUrl,
-    apiKey: params.apiKey,
     requestName: 'docs-search',
   })
   if (res.error) return { error: res.error }
@@ -235,11 +230,10 @@ export async function callTokenCountAPI(params: {
   logger: Logger
   env: CodebuffWebApiEnv
   baseUrl?: string
-  apiKey?: string
 }): Promise<{ inputTokens?: number; error?: string }> {
   const { messages, system, model, tools, fetch, logger, env } = params
   const baseUrl = params.baseUrl ?? (env.clientEnv as any).NEXT_PUBLIC_CODEBUFF_APP_URL ?? 'http://127.0.0.1:3000'
-  const apiKey = params.apiKey ?? env.ciEnv.CODEBUFF_API_KEY
+  const apiKey = env.ciEnv.CODEBUFF_API_KEY
 
   if (!baseUrl || !apiKey) {
     return { error: 'Missing Codebuff base URL or API key' }

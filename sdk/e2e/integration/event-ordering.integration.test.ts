@@ -21,7 +21,7 @@ describe('Integration: Event Ordering', () => {
 
   beforeAll(() => {
     if (skipIfNoApiKey()) return
-    client = new CodebuffClient({ apiKey: getApiKey() })
+    client = new CodebuffClient({})
   })
 
   test(

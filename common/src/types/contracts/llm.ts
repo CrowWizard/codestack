@@ -34,7 +34,6 @@ export type CacheDebugUsageData = {
 
 export type PromptAiSdkStreamFn = (
   params: {
-    apiKey: string
     runId: string
     messages: Message[]
     clientSessionId: string
@@ -62,6 +61,11 @@ export type PromptAiSdkStreamFn = (
     localAgentTemplates?: Record<string, AgentTemplate>
     /** Cost mode - 'free' mode means 0 credits charged for all agents */
     costMode?: string
+    /**
+     * Explicit, stable mapping key used to look up per-agent model overrides in Codestack.
+     * This should be the agent template id (e.g. "basher", "file-picker", "editor-multi-prompt").
+     */
+    agentMappingKey?: string
     /** Extra key/values merged into the request's `codebuff_metadata` field.
      *  Used to forward client-scoped identifiers (e.g. `freebuff_instance_id`)
      *  that server-side gates read from the chat-completions body. */
@@ -75,7 +79,6 @@ export type PromptAiSdkStreamFn = (
 
 export type PromptAiSdkFn = (
   params: {
-    apiKey: string
     runId: string
     messages: Message[]
     clientSessionId: string
@@ -98,6 +101,11 @@ export type PromptAiSdkFn = (
     maxRetries?: number
     /** Cost mode - 'free' mode means 0 credits charged for all agents */
     costMode?: string
+    /**
+     * Explicit, stable mapping key used to look up per-agent model overrides in Codestack.
+     * This should be the agent template id (e.g. "basher", "file-picker", "editor-multi-prompt").
+     */
+    agentMappingKey?: string
     sendAction: SendActionFn
     logger: Logger
     trackEvent: TrackEventFn
@@ -107,7 +115,6 @@ export type PromptAiSdkFn = (
 ) => Promise<PromptResult<string>>
 
 export type PromptAiSdkStructuredInput<T> = {
-  apiKey: string
   runId: string
   messages: Message[]
   schema: z.ZodType<T>
@@ -132,6 +139,13 @@ export type PromptAiSdkStructuredInput<T> = {
   cacheDebugCorrelation?: string
   agentProviderOptions?: OpenRouterProviderRoutingOptions
   maxRetries?: number
+  /** Cost mode - 'free' mode means 0 credits charged for all agents */
+  costMode?: string
+  /**
+   * Explicit, stable mapping key used to look up per-agent model overrides in Codestack.
+   * This should be the agent template id (e.g. "basher", "file-picker", "editor-multi-prompt").
+   */
+  agentMappingKey?: string
   sendAction: SendActionFn
   logger: Logger
   trackEvent: TrackEventFn

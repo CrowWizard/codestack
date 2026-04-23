@@ -17,13 +17,11 @@ import {
   TypeValidationError,
 } from 'ai'
 
+import { resolveModelFromMapping } from '@codebuff/common/config/codestack-config'
+
 import {
-  fetchClaudeOAuthResetTime,
   getModelForRequest,
-  markChatGptOAuthRateLimited,
-  markClaudeOAuthRateLimited,
 } from './model-provider'
-import { getValidClaudeOAuthCredentials, refreshClaudeOAuthToken, refreshChatGptOAuthToken } from '../credentials'
 import { getErrorStatusCode } from '../error-utils'
 
 import type { ModelRequestParams } from './model-provider'
@@ -307,9 +305,13 @@ export async function* promptAiSdkStream(
     return promptAborted('User cancelled input')
   }
 
+  // Resolve model from config mapping if available, otherwise use the requested model
+  const resolvedModel = params.costMode
+    ? resolveModelFromMapping(params.costMode, params.agentMappingKey)
+    : params.model
+
   const modelParams: ModelRequestParams = {
-    apiKey: params.apiKey,
-    model: params.model,
+    model: resolvedModel,
     skipClaudeOAuth: params.skipClaudeOAuth,
     skipChatGptOAuth: params.skipChatGptOAuth,
     costMode: params.costMode,
@@ -627,9 +629,13 @@ export async function promptAiSdk(
     return promptAborted('User cancelled input')
   }
 
+  // Resolve model from config mapping if available, otherwise use the requested model
+  const resolvedModel = params.costMode
+    ? resolveModelFromMapping(params.costMode, params.agentMappingKey)
+    : params.model
+
   const modelParams: ModelRequestParams = {
-    apiKey: params.apiKey,
-    model: params.model,
+    model: resolvedModel,
     skipClaudeOAuth: true, // Always use Codebuff backend for non-streaming
     skipChatGptOAuth: true, // Always use Codebuff backend for non-streaming
   }
@@ -695,9 +701,14 @@ export async function promptAiSdkStructured<T>(
     )
     return promptAborted('User cancelled input')
   }
+
+  // Resolve model from config mapping if available, otherwise use the requested model
+  const resolvedModel = params.costMode
+    ? resolveModelFromMapping(params.costMode, params.agentMappingKey)
+    : params.model
+
   const modelParams: ModelRequestParams = {
-    apiKey: params.apiKey,
-    model: params.model,
+    model: resolvedModel,
     skipClaudeOAuth: true, // Always use Codebuff backend for non-streaming
     skipChatGptOAuth: true, // Always use Codebuff backend for non-streaming
   }

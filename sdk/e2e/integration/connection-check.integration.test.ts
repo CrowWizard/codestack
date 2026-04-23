@@ -14,7 +14,7 @@ describe('Integration: Connection Check', () => {
 
   beforeAll(() => {
     if (skipIfNoApiKey()) return
-    client = new CodebuffClient({ apiKey: getApiKey() })
+    client = new CodebuffClient({})
   })
 
   test('checkConnection returns true when backend is reachable', async () => {

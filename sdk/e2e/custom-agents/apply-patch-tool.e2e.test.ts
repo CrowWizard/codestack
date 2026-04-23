@@ -27,7 +27,7 @@ describe('Custom Agents: apply_patch tool', () => {
 
   beforeAll(() => {
     if (skipIfNoApiKey()) return
-    client = new CodebuffClient({ apiKey: getApiKey() })
+    client = new CodebuffClient({})
   })
 
   test(

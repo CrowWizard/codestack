@@ -53,7 +53,6 @@ describe('getModelForRequest free-mode guards', () => {
 
     await expect(
       getModelForRequest({
-        apiKey: 'test-key',
         model: 'openai/gpt-5.3',
         costMode: 'free',
       }),
@@ -67,7 +66,6 @@ describe('getModelForRequest free-mode guards', () => {
 
     await expect(
       getModelForRequest({
-        apiKey: 'test-key',
         model: 'openai/gpt-5.3',
         costMode: 'free',
       }),
@@ -81,7 +79,6 @@ describe('getModelForRequest free-mode guards', () => {
     markChatGptOAuthRateLimited()
 
     const result = await getModelForRequest({
-      apiKey: 'test-key',
       model: 'openai/gpt-5.3',
       costMode: 'default',
     })
@@ -96,7 +93,6 @@ describe('getModelForRequest free-mode guards', () => {
     mockGetValidChatGptOAuthCredentials.mockResolvedValue(null)
 
     const result = await getModelForRequest({
-      apiKey: 'test-key',
       model: 'openai/gpt-5.3',
       costMode: 'default',
     })

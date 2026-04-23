@@ -347,6 +347,7 @@ export const runAgentStep = async (
       ...params,
       messages: agentState.messageHistory,
       model,
+      agentMappingKey: agentTemplate.id,
       n: params.n,
       onCostCalculated,
       cacheDebugCorrelation: cacheDebugCorrelation
@@ -404,6 +405,7 @@ export const runAgentStep = async (
     ...params,
     agentId: agentState.parentId ? agentState.agentId : undefined,
     costMode: params.costMode,
+    agentMappingKey: agentTemplate.id,
     cacheDebugCorrelation: cacheDebugCorrelation
       ? serializeCacheDebugCorrelation(cacheDebugCorrelation)
       : undefined,
@@ -668,14 +670,7 @@ export async function loopAgentSteps(
     }
   }
 
-  const runId = await startAgentRun({
-    ...params,
-    agentId: agentTemplate.id,
-    ancestorRunIds: initialAgentState.ancestorRunIds,
-  })
-  if (!runId) {
-    throw new Error('Failed to start agent run')
-  }
+  const runId = crypto.randomUUID()
   initialAgentState.runId = runId
 
   let cachedAdditionalToolDefinitions: CustomToolDefinitions | undefined

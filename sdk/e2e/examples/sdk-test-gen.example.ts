@@ -29,7 +29,7 @@ async function main() {
     process.exit(1)
   }
 
-  const client = new CodebuffClient({ apiKey })
+  const client = new CodebuffClient({})
 
   console.log('🧪 Generating tests...\n')
   console.log('Code to test:')

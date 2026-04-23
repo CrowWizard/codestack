@@ -82,7 +82,6 @@ export const handleSpawnAgentInline = (async (
     logger,
     fetchAgentFromDatabase: params.fetchAgentFromDatabase,
     databaseAgentCache: params.databaseAgentCache,
-    apiKey: params.apiKey,
   })
 
   validateAgentInput(agentTemplate, agentType, prompt, spawnParams)

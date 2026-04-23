@@ -3,10 +3,8 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 
-import { API_KEY_ENV_VAR } from '@codebuff/common/old-constants'
 import {
   CodebuffClient,
-  getUserCredentials,
   loadLocalAgents,
 } from '@codebuff/sdk'
 import pLimit from 'p-limit'
@@ -404,7 +402,6 @@ export async function runBuffBench(options: {
     options.client ??
     new CodebuffClient({
       logger,
-      apiKey: process.env[API_KEY_ENV_VAR] || getUserCredentials()?.authToken,
     })
 
   // Load local agent definitions and type definition file for analyzers

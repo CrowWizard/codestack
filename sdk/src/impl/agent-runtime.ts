@@ -24,7 +24,6 @@ const databaseAgentCache: DatabaseAgentCache = new Map()
 export function getAgentRuntimeImpl(
   params: {
     logger?: Logger
-    apiKey: string
     clientEnv?: ClientEnv
   } & Pick<
     AgentRuntimeScopedDeps,
@@ -39,7 +38,6 @@ export function getAgentRuntimeImpl(
 ): AgentRuntimeDeps & AgentRuntimeScopedDeps {
   const {
     logger,
-    apiKey,
     clientEnv = clientEnvDefault,
     handleStepsLogChunk,
     requestToolCall,
@@ -87,8 +85,6 @@ export function getAgentRuntimeImpl(
     requestOptionalFile,
     sendAction,
     sendSubagentChunk,
-
-    apiKey,
 
     // Analytics (no-op in SDK)
     trackEvent: (() => { }) as TrackEventFn,

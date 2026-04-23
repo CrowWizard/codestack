@@ -2,9 +2,7 @@
  * Agent-driven E2E test for Freebuff.
  *
  * Uses the Codebuff SDK to run a testing agent that interacts with the
- * Freebuff CLI binary via tmux custom tools. Requires CODEBUFF_API_KEY.
- *
- * Set CODEBUFF_API_KEY to run this test, otherwise it will be skipped.
+ * Freebuff CLI binary via tmux custom tools.
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'
@@ -15,10 +13,6 @@ import { createFreebuffTmuxTools, requireFreebuffBinary } from '../utils'
 import type { CodebuffClient as CodebuffClientType } from '@codebuff/sdk'
 
 const AGENT_TEST_TIMEOUT = 180_000
-
-function getApiKey(): string | null {
-  return process.env.CODEBUFF_API_KEY ?? null
-}
 
 describe('Freebuff: Agent-driven E2E', () => {
   let cleanup: (() => Promise<void>) | null = null
@@ -33,15 +27,6 @@ describe('Freebuff: Agent-driven E2E', () => {
   test(
     'agent can start freebuff and verify startup behavior',
     async () => {
-      const apiKey = getApiKey()
-      if (!apiKey) {
-        console.log(
-          'Skipping agent test: CODEBUFF_API_KEY not set. ' +
-            'Set it to run agent-driven e2e tests.',
-        )
-        return
-      }
-
       const binary = requireFreebuffBinary()
       const tmuxTools = createFreebuffTmuxTools(binary)
       cleanup = tmuxTools.cleanup
@@ -51,7 +36,7 @@ describe('Freebuff: Agent-driven E2E', () => {
         '@codebuff/sdk'
       )) as typeof import('@codebuff/sdk')
 
-      const client: CodebuffClientType = new CodebuffClient({ apiKey })
+      const client: CodebuffClientType = new CodebuffClient({})
 
       const events: Array<{ type: string; [key: string]: unknown }> = []
 
@@ -85,12 +70,6 @@ describe('Freebuff: Agent-driven E2E', () => {
   test(
     'agent can send commands and verify output',
     async () => {
-      const apiKey = getApiKey()
-      if (!apiKey) {
-        console.log('Skipping agent test: CODEBUFF_API_KEY not set.')
-        return
-      }
-
       const binary = requireFreebuffBinary()
       const tmuxTools = createFreebuffTmuxTools(binary)
       cleanup = tmuxTools.cleanup
@@ -99,7 +78,7 @@ describe('Freebuff: Agent-driven E2E', () => {
         '@codebuff/sdk'
       )) as typeof import('@codebuff/sdk')
 
-      const client: CodebuffClientType = new CodebuffClient({ apiKey })
+      const client: CodebuffClientType = new CodebuffClient({})
 
       const result = await client.run({
         agent: freebuffTesterAgent.id,

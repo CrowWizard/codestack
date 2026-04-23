@@ -30,7 +30,7 @@ async function main() {
     process.exit(1)
   }
 
-  const client = new CodebuffClient({ apiKey })
+  const client = new CodebuffClient({})
 
   console.log('🔧 Refactoring code...\n')
   console.log('Original code:')

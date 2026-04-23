@@ -8,8 +8,6 @@ import { EventCollector, DEFAULT_TIMEOUT } from '../../e2e/utils'
 
 import type { AgentOutput } from '@codebuff/common/types/session-state'
 
-const apiKey = process.env.CODEBUFF_API_KEY
-
 function extractOutputText(output: AgentOutput): string {
   if (output.type !== 'lastMessage' && output.type !== 'allMessages') return ''
   const messages = output.value as { role: string; content: unknown }[]
@@ -37,15 +35,7 @@ describe('Prompt Caching', () => {
   it(
     'should be cheaper on second request',
     async () => {
-      if (!apiKey) {
-        console.log(
-          'Skipping prompt caching integration test: set CODEBUFF_API_KEY to run.\n' +
-            'Example: CODEBUFF_API_KEY=your-key bun test src/__tests__/run.integration.test.ts',
-        )
-        return
-      }
-
-      const client = new CodebuffClient({ apiKey })
+      const client = new CodebuffClient({})
 
       const filler =
         `Run UUID: ${crypto.randomUUID()} ` +
@@ -88,6 +78,8 @@ describe('Prompt Caching', () => {
   it(
     'should not invalidate cache when git status changes between requests',
     async () => {
+      // Skip if no API key - this test requires a real API key
+      const apiKey = process.env.CODEBUFF_API_KEY
       if (!apiKey) {
         console.log(
           'Skipping prompt caching integration test: set CODEBUFF_API_KEY to run.',
@@ -109,7 +101,7 @@ describe('Prompt Caching', () => {
       try {
         fs.writeFileSync(tempFile1, `MAGIC_NUMBER=${magic1}`)
 
-        const client = new CodebuffClient({ apiKey, cwd: process.cwd() })
+        const client = new CodebuffClient({ cwd: process.cwd() })
 
         const filler =
           `Run UUID: ${crypto.randomUUID()} ` +

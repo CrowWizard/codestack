@@ -98,7 +98,6 @@ describe('MCP tool filtering', () => {
     )
 
     const client = new CodebuffClient({
-      apiKey: 'test-key',
       agentDefinitions: [TEST_AGENT],
     })
 

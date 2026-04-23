@@ -12,9 +12,9 @@ import type { ToolSet } from 'ai'
 
 export const getAgentStreamFromTemplate = (params: {
   agentId?: string
-  apiKey: string
   clientSessionId: string
   costMode?: string
+  agentMappingKey?: string
   extraCodebuffMetadata?: Record<string, string>
   fingerprintId: string
   includeCacheControl?: boolean
@@ -42,9 +42,9 @@ export const getAgentStreamFromTemplate = (params: {
 }): ReturnType<PromptAiSdkStreamFn> => {
   const {
     agentId,
-    apiKey,
     clientSessionId,
     costMode,
+    agentMappingKey,
     extraCodebuffMetadata,
     fingerprintId,
     includeCacheControl,
@@ -74,7 +74,7 @@ export const getAgentStreamFromTemplate = (params: {
 
   const aiSdkStreamParams: ParamsOf<PromptAiSdkStreamFn> = {
     agentId,
-    apiKey,
+    agentMappingKey,
     clientSessionId,
     costMode,
     extraCodebuffMetadata,

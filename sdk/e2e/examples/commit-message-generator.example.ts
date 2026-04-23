@@ -28,7 +28,7 @@ async function main() {
     process.exit(1)
   }
 
-  const client = new CodebuffClient({ apiKey })
+  const client = new CodebuffClient({})
 
   console.log('📝 Generating commit message...\n')
   console.log('Diff:')

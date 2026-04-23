@@ -88,7 +88,6 @@ export function extractSubagentContextParams(
     requestOptionalFile: params.requestOptionalFile,
     sendAction: params.sendAction,
     sendSubagentChunk: params.sendSubagentChunk,
-    apiKey: params.apiKey,
 
     // Core context params
     clientSessionId: params.clientSessionId,
