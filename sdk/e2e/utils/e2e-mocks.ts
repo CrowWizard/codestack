@@ -425,22 +425,13 @@ export function setupE2eMocks(): void {
     return
   }
   mocksApplied = true
-
-  spyOn(databaseModule, 'getUserInfoFromApiKey').mockImplementation(
-    async ({ fields }) =>
-      Object.fromEntries(
-        fields.map((field) => [field, MOCK_USER[field]]),
-      ) as unknown as Awaited<
-        ReturnType<typeof databaseModule.getUserInfoFromApiKey>
-      >,
-  )
   spyOn(databaseModule, 'fetchAgentFromDatabase').mockImplementation(
     async ({ parsedAgentId }) => buildMockAgentTemplate(parsedAgentId),
   )
   spyOn(databaseModule, 'startAgentRun').mockImplementation(
     async () => `mock-run-${Math.random().toString(36).slice(2, 10)}`,
   )
-  spyOn(databaseModule, 'finishAgentRun').mockImplementation(async () => {})
+  spyOn(databaseModule, 'finishAgentRun').mockImplementation(async () => { })
   spyOn(databaseModule, 'addAgentStep').mockImplementation(
     async () => `mock-step-${Math.random().toString(36).slice(2, 10)}`,
   )
@@ -452,6 +443,4 @@ export function setupE2eMocks(): void {
   spyOn(llmModule, 'promptAiSdkStructured').mockImplementation(
     promptAiSdkStructuredMock as typeof llmModule.promptAiSdkStructured,
   )
-
-  spyOn(CodebuffClient.prototype, 'checkConnection').mockResolvedValue(true)
 }

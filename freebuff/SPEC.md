@@ -186,7 +186,6 @@ In Freebuff, ads are **always enabled** and **cannot be disabled**.
 
 ### Files to modify
 
-- **`cli/src/commands/ads.ts`** — `getAdsEnabled()` returns `true` unconditionally when `IS_FREEBUFF`.
 - **`cli/src/chat.tsx`** — Skip the `!hasSubscription` guard for ads when `IS_FREEBUFF`; always show.
 
 ---

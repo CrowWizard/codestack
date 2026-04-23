@@ -1,11 +1,8 @@
 import React from 'react'
 
 import { BottomBanner } from './bottom-banner'
-import { useSubscriptionQuery } from '../hooks/use-subscription-query'
 import { useTheme } from '../hooks/use-theme'
-import { IS_FREEBUFF } from '../utils/constants'
 import { useChatStore } from '../state/chat-store'
-import { getChatGptOAuthStatus } from '../utils/chatgpt-oauth'
 
 const HELP_TIMEOUT = 60 * 1000 // 60 seconds
 

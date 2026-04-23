@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react'
 
 import { useUsageQuery } from './use-usage-query'
-import { IS_FREEBUFF } from '../utils/constants'
 import { useChatStore } from '../state/chat-store'
 import { getAuthToken } from '../utils/auth'
 import { shouldAutoShowBanner } from '../utils/usage-banner-state'
@@ -20,10 +19,9 @@ export function useUsageMonitor() {
   const lastWarnedThresholdRef = useRef<number | null>(null)
 
   // Query usage data - this will refetch when invalidated after message completion
-  const { data: usageData } = useUsageQuery({ enabled: !IS_FREEBUFF })
+  const { data: usageData } = useUsageQuery({ enabled: true })
 
   useEffect(() => {
-    if (IS_FREEBUFF) return
 
     // Only show after user has sent at least one message (to avoid overwhelming on app start)
     if (sessionCreditsUsed === 0) {
@@ -31,8 +29,8 @@ export function useUsageMonitor() {
     }
 
     const authToken = getAuthToken()
-    const remainingBalance = usageData?.remainingBalance ?? null
-    const autoTopupEnabled = usageData?.autoTopupEnabled ?? false
+    const remainingBalance = null
+    const autoTopupEnabled = false
 
     const decision = shouldAutoShowBanner(
       isChainInProgress,

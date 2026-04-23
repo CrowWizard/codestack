@@ -10,6 +10,13 @@
 import path from 'path'
 
 import { createAnthropic } from '@ai-sdk/anthropic'
+import { createOpenAI } from '@ai-sdk/openai'
+import {
+  loadCodestackConfig,
+  getModelConfig,
+} from '@codebuff/common/config/codestack-config'
+
+import { getByokOpenrouterApiKeyFromEnv } from '../env'
 import { BYOK_OPENROUTER_HEADER } from '@codebuff/common/constants/byok'
 import { isFreeMode } from '@codebuff/common/constants/free-agents'
 import {
@@ -30,13 +37,14 @@ import {
   OpenAICompatibleChatLanguageModel,
   VERSION,
 } from '@codebuff/internal/openai-compatible/index'
+import { createOpenAICompatible } from '@codebuff/internal/openai-compatible/openai-compatible-provider'
 
 import { WEBSITE_URL } from '../constants'
 import {
   getValidChatGptOAuthCredentials,
   getValidClaudeOAuthCredentials,
 } from '../credentials'
-import { getByokOpenrouterApiKeyFromEnv } from '../env'
+
 import {
   createChatGptBackendFetch,
   extractChatGptAccountId,
@@ -200,6 +208,16 @@ export interface ModelRequestParams {
   skipChatGptOAuth?: boolean
   /** Cost mode (e.g. 'free') — affects fallback behavior for OAuth routes */
   costMode?: string
+  /**
+ * Explicit, stable mapping key used to look up per-agent model overrides in Codestack.
+ * This should be the agent template id (e.g. "basher", "file-picker", "editor-multi-prompt").
+ */
+  agentMappingKey?: string
+  /**
+   * Legacy identifier, often a runtime/run id. Kept for backwards compatibility.
+   * Prefer agentMappingKey for mapping lookups.
+   */
+  agentId?: string
 }
 
 /**
@@ -232,6 +250,15 @@ type OpenRouterUsageAccounting = {
  */
 export async function getModelForRequest(params: ModelRequestParams): Promise<ModelResult> {
   const { apiKey, model, skipClaudeOAuth, skipChatGptOAuth, costMode } = params
+  const resolvedModel = model
+
+  if (!(isClaudeModel(model) || isOpenAIProviderModel(model) || isChatGptOAuthModelAllowed(model))) {
+    return {
+      model: createCodeStackDirectModel(resolvedModel),
+      isClaudeOAuth: false,
+      isChatGptOAuth: false,
+    }
+  }
 
   // Check if we should use Claude OAuth direct
   // Skip if feature disabled, explicitly requested, if rate-limited, or if not a Claude model
@@ -369,11 +396,11 @@ function createAnthropicOAuthModel(
         const existingSystem = body.system
           ? Array.isArray(body.system)
             ? body.system
-                .map(
-                  (s: { text?: string; content?: string }) =>
-                    s.text ?? s.content ?? '',
-                )
-                .join('\n\n')
+              .map(
+                (s: { text?: string; content?: string }) =>
+                  s.text ?? s.content ?? '',
+              )
+              .join('\n\n')
             : typeof body.system === 'string'
               ? body.system
               : ''
@@ -388,11 +415,11 @@ function createAnthropicOAuthModel(
           // Only add second block if there's actual content
           ...(existingSystem
             ? [
-                {
-                  type: 'text',
-                  text: existingSystem,
-                },
-              ]
+              {
+                type: 'text',
+                text: existingSystem,
+              },
+            ]
             : []),
         ]
         modifiedInit = { ...init, body: JSON.stringify(body) }
@@ -490,3 +517,112 @@ function createCodebuffBackendModel(
     supportsStructuredOutputs: true,
   })
 }
+
+// ============================================================================
+// Codestack BYOK Direct Provider Routing
+// ============================================================================
+
+type ProviderConfig = {
+  key: string
+  baseURL?: string
+  style?: 'openai' | 'openai-completions' | 'anthropic' | 'google'
+  headers?: Record<string, string>
+}
+
+function getProviderName(model: string): string {
+  const slashIdx = model.indexOf('/')
+  if (slashIdx === -1) return model
+  return model.substring(0, slashIdx)
+}
+
+function getModelId(model: string): string {
+  const slashIdx = model.indexOf('/')
+  if (slashIdx === -1) return model
+  return model.substring(slashIdx + 1)
+}
+
+function getCodestackProviderConfig(model: string): ProviderConfig | undefined {
+  // Use shared config loader from common (Zod-validated with env-var interpolation)
+  const config = loadCodestackConfig()
+  const keys = config.keys ?? {}
+  const providerName = getProviderName(model)
+  const providerValue = keys[providerName]
+
+  if (!providerValue) return undefined
+
+  // Object config (custom provider)
+  if (typeof providerValue === 'object' && providerValue !== null) {
+    return {
+      key: (providerValue as { key?: string }).key ?? '',
+      baseURL: (providerValue as { baseURL?: string }).baseURL,
+      style: ((providerValue as { style?: string }).style ?? 'openai') as
+        | 'openai'
+        | 'openai-completions'
+        | 'anthropic'
+        | 'google',
+      headers: (providerValue as { headers?: Record<string, string> }).headers,
+    }
+  }
+
+  return undefined
+}
+
+function createCodeStackDirectModel(model: string): LanguageModel {
+  const providerConfig = getCodestackProviderConfig(model)
+  const modelId = getModelId(model)
+
+  if (!providerConfig || !providerConfig.key) {
+    const providerName = getProviderName(model)
+    throw new Error(
+      `No API key configured for provider "${providerName}" (model: "${model}"). ` +
+      `Add "${providerName}" to the "keys" section of ~/.config/codestack/config.json.`,
+    )
+  }
+
+  const { key: apiKey, baseURL, style = 'openai', headers } = providerConfig
+  const providerName = getProviderName(model)
+
+  // Get model-specific configuration (extraBody, max_tokens)
+  // Note: temperature, top_p, top_k are handled in llm.ts via providerOptions for all providers
+  const modelConfig = getModelConfig(model)
+  const extraBody = modelConfig?.extraBody
+  const maxTokens = modelConfig?.max_tokens
+
+  // Merge max_tokens into extraBody if configured
+  // This ensures providers like Nvidia NIM get the correct max_tokens in the request
+  const mergedExtraBody = maxTokens
+    ? { ...extraBody, max_tokens: maxTokens }
+    : extraBody
+
+  if (style === 'anthropic') {
+    const anthropicModelId = baseURL ? modelId : toAnthropicModelId(model)
+    const anthropic = createAnthropic({
+      apiKey,
+      ...(baseURL ? { baseURL } : {}),
+    })
+    // Note: Anthropic SDK doesn't support passing temperature/topP/topK at model creation time.
+    // These settings are passed at request time via the model's second argument in streamText/generateText.
+    // For BYOK mode, we store these in modelConfig and apply them in llm.ts providerOptions.
+    return anthropic(anthropicModelId) as unknown as LanguageModel
+  }
+
+  const resolvedBaseURL = baseURL || 'https://api.openai.com/v1'
+  if (style === 'openai-completions') {
+    const customProvider = createOpenAICompatible({
+      baseURL: resolvedBaseURL,
+      name: providerName,
+      apiKey,
+      headers,
+    })
+    return customProvider.chatModel(modelId) as unknown as LanguageModel
+  }
+
+  const openai = createOpenAI({
+    apiKey,
+    baseURL: resolvedBaseURL,
+    ...(headers ? { defaultHeaders: headers } : {}),
+    ...(mergedExtraBody ? { extraBody: mergedExtraBody } : {}),
+  })
+  return openai(modelId) as unknown as LanguageModel
+}
+

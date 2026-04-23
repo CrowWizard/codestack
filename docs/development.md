@@ -28,7 +28,6 @@ To run multiple stacks on different ports, create `.env.development.local`:
 ```bash
 PORT=3001
 NEXT_PUBLIC_WEB_PORT=3001
-NEXT_PUBLIC_CODEBUFF_APP_URL=http://localhost:3001
 ```
 
 ## Logs

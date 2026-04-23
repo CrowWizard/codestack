@@ -12,7 +12,7 @@ import { FREEBUFF_MODELS } from '@codebuff/common/constants/freebuff-models'
 
 import { getSelectedFreebuffModel } from '../state/freebuff-model-store'
 import { getProjectRoot } from '../project-files'
-import { AGENT_MODE_TO_ID, IS_FREEBUFF, type AgentMode } from './constants'
+import { AGENT_MODE_TO_ID, type AgentMode } from './constants'
 import { logger } from './logger'
 import * as bundledAgentsModule from '../agents/bundled-agents.generated'
 
@@ -112,7 +112,7 @@ const getDefaultAgentDirs = (): string[] => {
 const buildAgentFilePathMap = (agentsDirs: string[]): Map<string, string> => {
   const idToPath = new Map<string, string>()
   const idRegex = /id\s*:\s*['"`]([^'"`]+)['"`]/i
-  
+
   const scanDirectory = (dir: string): void => {
     try {
       const entries = fs.readdirSync(dir, { withFileTypes: true })
@@ -139,7 +139,7 @@ const buildAgentFilePathMap = (agentsDirs: string[]): Map<string, string> => {
       // Skip directories that can't be read
     }
   }
-  
+
   // Scan all directories - later directories override earlier ones
   for (const agentsDir of agentsDirs) {
     scanDirectory(agentsDir)
@@ -251,29 +251,29 @@ export const loadLocalAgents = (currentAgentMode?: AgentMode): LocalAgentInfo[] 
   // compiled into the CLI binary at build time
   const bundledAgentsInfo = getBundledAgentsAsLocalInfo()
   const bundledAgents = getBundledAgents()
-  
+
   // Filter bundled agents to only include subagents of the current mode's agent
   let filteredBundledAgents: LocalAgentInfo[]
   if (currentAgentMode) {
     const currentAgentId = AGENT_MODE_TO_ID[currentAgentMode]
     const currentAgentDef = bundledAgents[currentAgentId]
     const spawnableAgentIds = new Set(currentAgentDef?.spawnableAgents ?? [])
-    
+
     // Only include bundled agents that are in the spawnableAgents list
-    filteredBundledAgents = bundledAgentsInfo.filter(agent => 
+    filteredBundledAgents = bundledAgentsInfo.filter(agent =>
       spawnableAgentIds.has(agent.id)
     )
   } else {
     filteredBundledAgents = bundledAgentsInfo
   }
-  
+
   const results: LocalAgentInfo[] = [...filteredBundledAgents]
   const includedIds = new Set(filteredBundledAgents.map(a => a.id))
 
   // Get user agents from the SDK-loaded cache
   // User agents are always included (not filtered by mode) and can override bundled agents
   const userAgents = getUserAgentsAsLocalInfo()
-  
+
   // Merge user agents - they override bundled agents with same ID
   // and are always included regardless of mode filtering
   for (const userAgent of userAgents) {
@@ -292,7 +292,7 @@ export const loadLocalAgents = (currentAgentMode?: AgentMode): LocalAgentInfo[] 
   const sorted = results.sort((a, b) =>
     a.displayName.localeCompare(b.displayName, 'en'),
   )
-  
+
   cachedAgentsByMode.set(cacheKey, sorted)
   return sorted
 }
@@ -365,20 +365,6 @@ export const loadAgentDefinitions = (): AgentDefinition[] => {
           ...def.mcpServers,
           ...mcpServersCache,
         }
-      }
-    }
-  }
-
-  // Override the model of free-mode agents to match the user's pick from the
-  // freebuff waiting room. Bundled definitions hardcode glm-5.1; we swap in
-  // whatever the user chose so the chat-completions request body carries the
-  // matching model and the server-side session gate doesn't reject it as a
-  // model mismatch.
-  if (IS_FREEBUFF) {
-    const selectedModel = getSelectedFreebuffModel()
-    for (const def of definitions) {
-      if (FREEBUFF_MODEL_OVERRIDABLE_AGENT_IDS.has(def.id)) {
-        def.model = selectedModel
       }
     }
   }

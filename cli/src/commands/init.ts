@@ -10,12 +10,11 @@ import toolsSource from '../../../common/src/templates/initial-agents-dir/types/
 // @ts-expect-error - Bun text import attribute not supported by TypeScript
 import utilTypesSource from '../../../common/src/templates/initial-agents-dir/types/util-types' with { type: 'text' }
 import { getProjectRoot } from '../project-files'
-import { IS_FREEBUFF } from '../utils/constants'
 import { getSystemMessage } from '../utils/message-history'
 
 import type { PostUserMessageFn } from '../types/contracts/send-message'
 
-const brandName = IS_FREEBUFF ? 'Freebuff' : 'Codebuff'
+const brandName = 'Codebuff'
 
 const INITIAL_KNOWLEDGE_FILE = `# Project knowledge
 
@@ -97,8 +96,7 @@ export function handleInitializationFlowLocally(): {
       messages.push(`✅ Copied \`.agents/types/${fileName}\``)
     } catch (error) {
       messages.push(
-        `⚠️ Failed to copy \`.agents/types/${fileName}\`: ${
-          error instanceof Error ? error.message : String(error ?? 'Unknown')
+        `⚠️ Failed to copy \`.agents/types/${fileName}\`: ${error instanceof Error ? error.message : String(error ?? 'Unknown')
         }`,
       )
     }

@@ -6,8 +6,6 @@ import type { ClientEnv, CiEnv } from '@codebuff/common/types/contracts/env'
 
 const evalsClientEnv: ClientEnv = {
   NEXT_PUBLIC_CB_ENVIRONMENT: 'test',
-  NEXT_PUBLIC_CODEBUFF_APP_URL: 'https://test.codebuff.com',
-  NEXT_PUBLIC_SUPPORT_EMAIL: 'support@codebuff.test',
   NEXT_PUBLIC_WEB_PORT: 3000,
 }
 
@@ -27,15 +25,6 @@ export const EVALS_AGENT_RUNTIME_IMPL = Object.freeze<AgentRuntimeDeps>({
   ciEnv: evalsCiEnv,
 
   // Database
-  getUserInfoFromApiKey: async () => ({
-    id: 'test-user-id',
-    email: 'test-email',
-    discord_id: 'test-discord-id',
-    referral_code: 'ref-test-code',
-    stripe_customer_id: null,
-    banned: false,
-    created_at: new Date('2024-01-01T00:00:00Z'),
-  }),
   fetchAgentFromDatabase: async () => null,
   startAgentRun: async () => 'test-agent-run-id',
   finishAgentRun: async () => { },

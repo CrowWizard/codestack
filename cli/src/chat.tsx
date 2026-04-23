@@ -15,9 +15,7 @@ import { ChatInputBar } from './components/chat-input-bar'
 import { LoadPreviousButton } from './components/load-previous-button'
 import { ReviewScreen } from './components/review-screen'
 import { MessageWithAgents } from './components/message-with-agents'
-import { areCreditsRestored } from './components/out-of-credits-banner'
 import { PendingBashMessage } from './components/pending-bash-message'
-import { SessionEndedBanner } from './components/session-ended-banner'
 import { StatusBar } from './components/status-bar'
 import { TopBanner } from './components/top-banner'
 import { getSlashCommandsWithSkills } from './data/slash-commands'
@@ -32,7 +30,6 @@ import { useChatMessages } from './hooks/use-chat-messages'
 import { useChatState } from './hooks/use-chat-state'
 import { useChatStreaming } from './hooks/use-chat-streaming'
 import { useChatUI } from './hooks/use-chat-ui'
-import { useSubscriptionQuery } from './hooks/use-subscription-query'
 import { useClipboard } from './hooks/use-clipboard'
 import { useEvent } from './hooks/use-event'
 import { useInputHistory } from './hooks/use-input-history'
@@ -49,8 +46,7 @@ import { usePublishStore } from './state/publish-store'
 import { reportActivity } from './utils/activity-tracker'
 import { showClipboardMessage } from './utils/clipboard'
 import { readClipboardImage } from './utils/clipboard-image'
-import { endAndRejoinFreebuffSession } from './hooks/use-freebuff-session'
-import { END_SESSION_MESSAGE, IS_FREEBUFF } from './utils/constants'
+import { END_SESSION_MESSAGE } from './utils/constants'
 import { getSystemMessage } from './utils/message-history'
 import { getInputModeConfig } from './utils/input-modes'
 
@@ -145,11 +141,6 @@ export const Chat = ({
   } = useChatState()
 
   const { statusMessage } = useClipboard()
-
-  // Fetch subscription data early - needed for session credits tracking and ad gating
-  const { data: subscriptionData } = useSubscriptionQuery({
-    refetchInterval: 60 * 1000,
-  })
 
   // Set initial mode from CLI flag on mount
   useEffect(() => {
@@ -404,7 +395,6 @@ export const Chat = ({
     resumeQueue,
     continueChat,
     continueChatId,
-    subscriptionData,
   })
 
   sendMessageRef.current = sendMessage
@@ -1358,7 +1348,6 @@ export const Chat = ({
                 ...prev,
                 getSystemMessage(END_SESSION_MESSAGE),
               ])
-              endAndRejoinFreebuffSession().catch(() => { })
             }}
           />
         )}

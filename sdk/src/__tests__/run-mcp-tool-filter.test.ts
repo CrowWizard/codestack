@@ -35,14 +35,6 @@ describe('MCP tool filtering', () => {
   })
 
   it('returns only allowlisted MCP tools when an agent restricts toolNames', async () => {
-    spyOn(databaseModule, 'getUserInfoFromApiKey').mockResolvedValue({
-      id: 'user-123',
-      email: 'test@example.com',
-      discord_id: null,
-      stripe_customer_id: null,
-      banned: false,
-      created_at: new Date('2024-01-01T00:00:00Z'),
-    })
     spyOn(databaseModule, 'fetchAgentFromDatabase').mockResolvedValue(null)
     spyOn(databaseModule, 'startAgentRun').mockResolvedValue('run-1')
     spyOn(databaseModule, 'finishAgentRun').mockResolvedValue(undefined)

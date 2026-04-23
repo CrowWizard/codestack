@@ -75,8 +75,6 @@ export const testFetch = Object.assign(
 
 export const testClientEnv = {
   NEXT_PUBLIC_CB_ENVIRONMENT: 'test' as const,
-  NEXT_PUBLIC_CODEBUFF_APP_URL: 'https://test.codebuff.com',
-  NEXT_PUBLIC_SUPPORT_EMAIL: 'support@codebuff.test',
   NEXT_PUBLIC_WEB_PORT: 3000,
 }
 

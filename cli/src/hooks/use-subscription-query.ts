@@ -1,7 +1,5 @@
 import { useActivityQuery } from './use-activity-query'
 import { getAuthToken } from '../utils/auth'
-import { IS_FREEBUFF } from '../utils/constants'
-import { getApiClient } from '../utils/codebuff-api'
 import { logger as defaultLogger } from '../utils/logger'
 
 import type { Logger } from '@codebuff/common/types/contracts/logger'
@@ -37,7 +35,7 @@ export function useSubscriptionQuery(deps: UseSubscriptionQueryDeps = {}) {
 
   return useActivityQuery({
     queryKey: subscriptionQueryKeys.current(),
-    enabled: enabled && !!authToken && !IS_FREEBUFF,
+    enabled: enabled && !!authToken,
     staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000,
     retry: 1,

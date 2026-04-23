@@ -32,7 +32,6 @@ export type AgentRuntimeDeps = {
   ciEnv: CiEnv
 
   // Database
-  getUserInfoFromApiKey: GetUserInfoFromApiKeyFn
   fetchAgentFromDatabase: FetchAgentFromDatabaseFn
   startAgentRun: StartAgentRunFn
   finishAgentRun: FinishAgentRunFn

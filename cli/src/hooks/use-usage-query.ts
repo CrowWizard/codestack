@@ -35,43 +35,6 @@ interface FetchUsageParams {
   clientEnv?: ClientEnv
 }
 
-/**
- * Fetches usage data from the API
- */
-export async function fetchUsageData({
-  authToken,
-  logger = defaultLogger,
-  clientEnv = env,
-}: FetchUsageParams): Promise<UsageResponse> {
-  const appUrl = clientEnv.NEXT_PUBLIC_CODEBUFF_APP_URL
-  if (!appUrl) {
-    throw new Error('NEXT_PUBLIC_CODEBUFF_APP_URL is not set')
-  }
-
-  const response = await fetch(`${appUrl}/api/v1/usage`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      fingerprintId: 'cli-usage',
-      authToken,
-    }),
-  })
-
-  if (!response.ok) {
-    logger.error(
-      { status: response.status },
-      'Failed to fetch usage data from API',
-    )
-    throw new Error(`Failed to fetch usage: ${response.status}`)
-  }
-
-  const responseBody = await response.json()
-  const data = responseBody as UsageResponse
-  return data
-}
-
 export interface UseUsageQueryDeps {
   logger?: Logger
   enabled?: boolean

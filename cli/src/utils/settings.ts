@@ -11,7 +11,6 @@ import type { AgentMode } from './constants'
 
 const DEFAULT_SETTINGS: Settings = {
   mode: 'DEFAULT' as const,
-  adsEnabled: true,
 }
 
 // Note: The old FREE mode has been renamed back to LITE; migrate on load.
@@ -21,7 +20,6 @@ const DEFAULT_SETTINGS: Settings = {
  */
 export interface Settings {
   mode?: AgentMode
-  adsEnabled?: boolean
   /** Last model the user picked in the freebuff model selector. Restored on
    *  next freebuff launch so users land in the queue for their preferred
    *  model without re-picking. Persisted as the canonical model id. */
@@ -95,11 +93,6 @@ const validateSettings = (parsed: unknown): Settings => {
     if (AGENT_MODES.includes(normalized as AgentMode)) {
       settings.mode = normalized as AgentMode
     }
-  }
-
-  // Validate adsEnabled
-  if (typeof obj.adsEnabled === 'boolean') {
-    settings.adsEnabled = obj.adsEnabled
   }
 
   // Validate freebuffModel — drop unknown ids so a removed model doesn't

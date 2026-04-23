@@ -46,7 +46,7 @@ const callCodebuffV1 = async (params: {
   requestName: 'web-search' | 'docs-search'
 }): Promise<{ json?: unknown; error?: string; creditsUsed?: number }> => {
   const { endpoint, payload, fetch, logger, env, requestName } = params
-  const baseUrl = params.baseUrl ?? env.clientEnv.NEXT_PUBLIC_CODEBUFF_APP_URL
+  const baseUrl = params.baseUrl ?? (env.clientEnv as any).NEXT_PUBLIC_CODEBUFF_APP_URL ?? 'http://127.0.0.1:3000'
   const apiKey = params.apiKey ?? env.ciEnv.CODEBUFF_API_KEY
 
   if (!baseUrl || !apiKey) {
@@ -238,7 +238,7 @@ export async function callTokenCountAPI(params: {
   apiKey?: string
 }): Promise<{ inputTokens?: number; error?: string }> {
   const { messages, system, model, tools, fetch, logger, env } = params
-  const baseUrl = params.baseUrl ?? env.clientEnv.NEXT_PUBLIC_CODEBUFF_APP_URL
+  const baseUrl = params.baseUrl ?? (env.clientEnv as any).NEXT_PUBLIC_CODEBUFF_APP_URL ?? 'http://127.0.0.1:3000'
   const apiKey = params.apiKey ?? env.ciEnv.CODEBUFF_API_KEY
 
   if (!baseUrl || !apiKey) {

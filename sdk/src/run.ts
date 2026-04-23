@@ -20,7 +20,6 @@ import { cloneDeep } from 'lodash'
 
 import { getErrorStatusCode } from './error-utils'
 import { getAgentRuntimeImpl } from './impl/agent-runtime'
-import { getUserInfoFromApiKey } from './impl/database'
 import { initialSessionState, applyOverridesToSessionState } from './run-state'
 import { changeFile } from './tools/change-file'
 import { applyPatchTool } from './tools/apply-patch'
@@ -73,8 +72,6 @@ const wrapContentForUserMessage = (
 }
 
 export type CodebuffClientOptions = {
-  apiKey?: string
-
   cwd?: string
   /** Optional directory path to load skills from. Skills found here will be available to the `skill` tool. */
   skillsDir?: string
@@ -89,17 +86,17 @@ export type CodebuffClientOptions = {
     chunk:
       | string
       | {
-          type: 'subagent_chunk'
-          agentId: string
-          agentType: string
-          chunk: string
-        }
+        type: 'subagent_chunk'
+        agentId: string
+        agentType: string
+        chunk: string
+      }
       | {
-          type: 'reasoning_chunk'
-          agentId: string
-          ancestorRunIds: string[]
-          chunk: string
-        },
+        type: 'reasoning_chunk'
+        agentId: string
+        ancestorRunIds: string[]
+        chunk: string
+      },
   ) => void | Promise<void>
 
   /** Optional filter to classify files before reading (runs before gitignore check) */
@@ -147,6 +144,8 @@ export type RunOptions = {
   extraToolResults?: ToolMessage[]
   signal?: AbortSignal
   costMode?: string
+  /** User identifier for tracking credits and analytics */
+  userId?: string
   /** Extra key/values merged into each LLM request's `codebuff_metadata`.
    *  Used by hosts (e.g. the CLI) to forward client-scoped identifiers like
    *  `freebuff_instance_id` that server-side gates read from the request body. */
@@ -164,7 +163,6 @@ const createAbortError = (signal?: AbortSignal) => {
 
 type RunExecutionOptions = RunOptions &
   CodebuffClientOptions & {
-    apiKey: string
     fingerprintId: string
   }
 type RunReturnType = RunState
@@ -189,6 +187,7 @@ export async function run(options: RunExecutionOptions): Promise<RunState> {
 async function runOnce({
   apiKey,
   fingerprintId,
+  userId,
 
   cwd,
   skillsDir,
@@ -269,8 +268,8 @@ async function runOnce({
     })
   }
 
-  let resolve: (value: RunReturnType) => any = () => {}
-  let _reject: (error: any) => any = () => {}
+  let resolve: (value: RunReturnType) => any = () => { }
+  let _reject: (error: any) => any = () => { }
   const promise = new Promise<RunReturnType>((res, rej) => {
     resolve = res
     _reject = rej
@@ -392,8 +391,8 @@ async function runOnce({
         overrides: overrideTools ?? {},
         customToolDefinitions: customToolDefinitions
           ? Object.fromEntries(
-              customToolDefinitions.map((def) => [def.toolName, def]),
-            )
+            customToolDefinitions.map((def) => [def.toolName, def]),
+          )
           : {},
         cwd,
         fs,
@@ -491,23 +490,13 @@ async function runOnce({
   const promptId = Math.random().toString(36).substring(2, 15)
 
   // Send input
-  const userInfo = await getUserInfoFromApiKey({
-    ...agentRuntimeImpl,
-    apiKey,
-    fields: ['id'],
-  })
-  if (!userInfo) {
-    return getCancelledRunState('Invalid API key or user not found')
-  }
-
-  const userId = userInfo.id
-
   if (signal?.aborted) {
     return getCancelledRunState('Run cancelled by user.')
   }
 
   callMainPrompt({
     ...agentRuntimeImpl,
+    userId,
     promptId,
     action: {
       type: 'prompt',
@@ -524,7 +513,6 @@ async function runOnce({
     repoUrl: undefined,
     repoId: undefined,
     clientSessionId: promptId,
-    userId,
     extraCodebuffMetadata,
     signal: signal ?? new AbortController().signal,
   }).catch((error) => {
@@ -726,9 +714,9 @@ async function handleToolCall({
         value: {
           errorMessage:
             error &&
-            typeof error === 'object' &&
-            'message' in error &&
-            typeof error.message === 'string'
+              typeof error === 'object' &&
+              'message' in error &&
+              typeof error.message === 'string'
               ? error.message
               : typeof error === 'string'
                 ? error

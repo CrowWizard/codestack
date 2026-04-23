@@ -8,7 +8,6 @@ import { APICallError, type ToolSet } from 'ai'
 import { cloneDeep, mapValues } from 'lodash'
 
 import { CACHE_DEBUG_FULL_LOGGING } from './constants'
-import { callTokenCountAPI } from './llm-api/codebuff-web-api'
 import { getMCPToolData } from './mcp'
 import { getAgentStreamFromTemplate } from './prompt-agent-stream'
 import { runProgrammaticStep } from './run-programmatic-step'
@@ -269,14 +268,14 @@ export const runAgentStep = async (
         system,
         toolDefinitions: params.tools
           ? Object.fromEntries(
-              Object.entries(params.tools).map(([name, tool]) => [
-                name,
-                {
-                  description: tool.description,
-                  inputSchema: tool.inputSchema as {},
-                },
-              ]),
-            )
+            Object.entries(params.tools).map(([name, tool]) => [
+              name,
+              {
+                description: tool.description,
+                inputSchema: tool.inputSchema as {},
+              },
+            ]),
+          )
           : {},
         messages: [systemMessage(system), ...agentState.messageHistory],
         logger,
@@ -294,33 +293,33 @@ export const runAgentStep = async (
   const onCacheDebugProviderRequestBuilt =
     cacheDebugCorrelation
       ? ({
+        provider,
+        rawBody,
+        normalizedBody,
+      }: {
+        provider: string
+        rawBody: unknown
+        normalizedBody?: unknown
+      }) => {
+        enrichCacheDebugSnapshotWithProviderRequest({
+          correlation: cacheDebugCorrelation,
           provider,
           rawBody,
-          normalizedBody,
-        }: {
-          provider: string
-          rawBody: unknown
-          normalizedBody?: unknown
-        }) => {
-          enrichCacheDebugSnapshotWithProviderRequest({
-            correlation: cacheDebugCorrelation,
-            provider,
-            rawBody,
-            normalized: normalizedBody ?? rawBody,
-            logger,
-          })
-        }
+          normalized: normalizedBody ?? rawBody,
+          logger,
+        })
+      }
       : undefined
 
   const onCacheDebugUsageReceived =
     cacheDebugCorrelation
       ? (usage: CacheDebugUsageData) => {
-          enrichCacheDebugSnapshotWithUsage({
-            correlation: cacheDebugCorrelation,
-            usage,
-            logger,
-          })
-        }
+        enrichCacheDebugSnapshotWithUsage({
+          correlation: cacheDebugCorrelation,
+          usage,
+          logger,
+        })
+      }
       : undefined
 
   logger.debug(
@@ -862,31 +861,6 @@ export async function loopAgentSteps(
           content: stepPrompt,
         }),
       )
-
-      // Check context token count via Anthropic API
-      const tokenCountResult = await callTokenCountAPI({
-        messages: messagesWithStepPrompt,
-        system,
-        model: agentTemplate.model,
-        tools: toolsForTokenCount,
-        fetch,
-        logger,
-        env: { clientEnv, ciEnv },
-      })
-      if (tokenCountResult.inputTokens !== undefined) {
-        currentAgentState.contextTokenCount = tokenCountResult.inputTokens
-      } else if (tokenCountResult.error) {
-        logger.warn(
-          { error: tokenCountResult.error },
-          'Failed to get token count from Anthropic API',
-        )
-        // Fall back to local estimate
-        const estimatedTokens =
-          countTokensJson(currentAgentState.messageHistory) +
-          countTokensJson(system) +
-          countTokensJson(toolDefinitions)
-        currentAgentState.contextTokenCount = estimatedTokens
-      }
 
       // 1. Run programmatic step first if it exists
       let n: number | undefined = undefined

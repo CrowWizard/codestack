@@ -1,7 +1,5 @@
 import { env, IS_DEV } from '@codebuff/common/env'
 
-import { IS_FREEBUFF } from '../utils/constants'
-
 
 // Codebuff ASCII Logo - compact version for 80-width terminals
 const LOGO_CODESTACK = `

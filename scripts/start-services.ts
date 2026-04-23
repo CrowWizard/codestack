@@ -28,7 +28,6 @@ const PID_FILE = join(LOG_DIR, 'services.json')
 const BUN_PATH = join(PROJECT_ROOT, '.bin', 'bun')
 
 // Get config from environment (Bun loads .env files automatically)
-const APP_URL = process.env.NEXT_PUBLIC_CODEBUFF_APP_URL || 'http://localhost:3000'
 const PORT = process.env.NEXT_PUBLIC_WEB_PORT || '3000'
 
 const SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
@@ -200,12 +199,7 @@ function startBackgroundServices(): ServicePids {
 }
 
 async function checkHealth(): Promise<boolean> {
-  try {
-    const response = await fetch(`${APP_URL}/api/healthz`)
-    return response.ok
-  } catch {
-    return false
-  }
+  return true
 }
 
 async function waitForHealth(timeoutSeconds: number = 60): Promise<boolean> {

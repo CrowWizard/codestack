@@ -33,7 +33,6 @@ export * from './run-state'
 export { ToolHelpers } from './tools'
 export * from './constants'
 
-export { getUserInfoFromApiKey } from './impl/database'
 export * from './credentials'
 export { loadLocalAgents } from './agents/load-agents'
 export { loadMCPConfig, loadMCPConfigSync } from './agents/load-mcp-config'
@@ -53,7 +52,7 @@ export type {
 } from './agents/load-mcp-config'
 
 export { validateAgents } from './validate-agents'
-export type { ValidationResult, ValidateAgentsOptions } from './validate-agents'
+export type { ValidationResult } from './validate-agents'
 
 // Error utilities
 export {

@@ -6,7 +6,6 @@ import {
   addAgentStep,
   fetchAgentFromDatabase,
   finishAgentRun,
-  getUserInfoFromApiKey,
   startAgentRun,
 } from './database'
 import { promptAiSdk, promptAiSdkStream, promptAiSdkStructured } from './llm'
@@ -57,7 +56,6 @@ export function getAgentRuntimeImpl(
     ciEnv: getCiEnv(),
 
     // Database
-    getUserInfoFromApiKey,
     fetchAgentFromDatabase,
     startAgentRun,
     finishAgentRun,
@@ -93,13 +91,13 @@ export function getAgentRuntimeImpl(
     apiKey,
 
     // Analytics (no-op in SDK)
-    trackEvent: (() => {}) as TrackEventFn,
+    trackEvent: (() => { }) as TrackEventFn,
   }
 }
 
 const noopLogger: Logger = {
-  debug: () => {},
-  info: () => {},
-  warn: () => {},
-  error: () => {},
+  debug: () => { },
+  info: () => { },
+  warn: () => { },
+  error: () => { },
 }

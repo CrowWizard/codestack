@@ -1,6 +1,3 @@
-import { getClaudeOAuthCredentials, isClaudeOAuthValid } from '@codebuff/sdk'
-import { IS_FREEBUFF } from '../utils/constants'
-
 import { useActivityQuery } from './use-activity-query'
 import { logger as defaultLogger } from '../utils/logger'
 

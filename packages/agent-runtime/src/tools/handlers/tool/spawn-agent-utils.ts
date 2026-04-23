@@ -62,7 +62,6 @@ export function extractSubagentContextParams(
     clientEnv: params.clientEnv,
     ciEnv: params.ciEnv,
     // AgentRuntimeDeps - Database
-    getUserInfoFromApiKey: params.getUserInfoFromApiKey,
     fetchAgentFromDatabase: params.fetchAgentFromDatabase,
     startAgentRun: params.startAgentRun,
     finishAgentRun: params.finishAgentRun,

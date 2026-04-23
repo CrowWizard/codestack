@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
 import { BottomBanner } from './bottom-banner'
-import { IS_FREEBUFF } from '../utils/constants'
 import { Button } from './button'
 import { useTheme } from '../hooks/use-theme'
 import { useChatStore } from '../state/chat-store'
@@ -20,7 +19,6 @@ type FlowState =
   | 'error'
 
 export const ClaudeConnectBanner = () => {
-  if (IS_FREEBUFF) return null
 
   const setInputMode = useChatStore((state) => state.setInputMode)
   const theme = useTheme()

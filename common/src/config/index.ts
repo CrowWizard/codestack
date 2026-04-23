@@ -1,6 +1,6 @@
 export {
-  loadCodefluffConfig,
-  resetCodefluffConfigCache,
+  loadCodestackConfig,
+  resetCodestackConfigCache,
   getConfiguredKeys,
   getDefaultMode,
   getSearchProviders,
@@ -13,7 +13,7 @@ export {
 } from './codestack-config.js'
 
 export type {
-  CodefluffConfig,
+  CodestackConfig,
   ProviderKeyConfig,
   ModelConfig,
   CostMode,

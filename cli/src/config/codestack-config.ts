@@ -4,16 +4,16 @@
  */
 
 export {
-  loadCodefluffConfig as loadCodestackConfig,
+  loadCodestackConfig as loadCodestackConfig,
   getConfiguredKeys,
   getDefaultMode,
   getSearchProviders as getConfiguredSearchProviders,
   costModes,
-  resetCodefluffConfigCache,
+  resetCodestackConfigCache,
 } from '@codebuff/common/config/codestack-config'
 
 export type {
-  CodefluffConfig as CodestackConfig,
+  CodestackConfig as CodestackConfig,
   CostMode,
   ProviderKeyConfig,
 } from '@codebuff/common/config/codestack-config'

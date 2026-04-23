@@ -1,5 +1,5 @@
 /**
- * Shared Codefluff config loader — single source of truth.
+ * Shared Codestack config loader — single source of truth.
  *
  * Zod-validated schema with ${ENV_VAR} interpolation support for secrets.
  * Replaces the three separate config loaders previously scattered across
@@ -58,7 +58,7 @@ const modeMappingSchema = z
     path: ['base'],
   })
 
-const codefluffConfigSchema = z.object({
+const codestackConfigSchema = z.object({
   keys: z.record(z.string(), providerKeySchema).optional(),
   // Per-model configuration (key: "provider/model-id")
   models: z.record(z.string(), modelConfigSchema).optional(),
@@ -69,15 +69,15 @@ const codefluffConfigSchema = z.object({
   searchProviders: z.record(z.string(), z.string().min(1)).optional(),
 })
 
-export type CodefluffConfig = z.infer<typeof codefluffConfigSchema>
+export type CodestackConfig = z.infer<typeof codestackConfigSchema>
 export type ProviderKeyConfig =
   | string
   | {
-      key: string
-      baseURL?: string
-      style?: 'openai' | 'openai-completions' | 'anthropic' | 'google'
-      headers?: Record<string, string>
-    }
+    key: string
+    baseURL?: string
+    style?: 'openai' | 'openai-completions' | 'anthropic' | 'google'
+    headers?: Record<string, string>
+  }
 export type ModelConfig = z.infer<typeof modelConfigSchema>
 
 // ============================================================================
@@ -89,7 +89,7 @@ function interpolateEnvVars(value: string): string {
     const envValue = process.env[envVar]
     if (!envValue) {
       throw new Error(
-        `Environment variable ${envVar} is referenced in codefluff config but not set`,
+        `Environment variable ${envVar} is referenced in codestack config but not set`,
       )
     }
     return envValue
@@ -137,18 +137,18 @@ function interpolateConfigKeys(
 function getConfigPath(): string {
   const homeDir = (process.env.HOME || process.env.USERPROFILE) ?? ''
   if (!homeDir) {
-    throw new Error('Cannot determine home directory for codefluff config')
+    throw new Error('Cannot determine home directory for codestack config')
   }
-  return join(homeDir, '.config', 'codefluff', 'config.json')
+  return join(homeDir, '.config', 'codestack', 'config.json')
 }
 
 // ============================================================================
 // Loaded and validated config (cached)
 // ============================================================================
 
-let _cachedConfig: CodefluffConfig | null = null
+let _cachedConfig: CodestackConfig | null = null
 
-export function loadCodefluffConfig(): CodefluffConfig {
+export function loadCodestackConfig(): CodestackConfig {
   if (_cachedConfig !== null) return _cachedConfig
 
   const configPath = getConfigPath()
@@ -166,43 +166,43 @@ export function loadCodefluffConfig(): CodefluffConfig {
       ...parsed,
       ...(parsed.keys
         ? {
-            keys: interpolateConfigKeys(parsed.keys as Record<string, unknown>),
-          }
+          keys: interpolateConfigKeys(parsed.keys as Record<string, unknown>),
+        }
         : {}),
       ...(parsed.models
         ? {
-            models: interpolateEnvVarsInValue(parsed.models) as Record<
-              string,
-              unknown
-            >,
-          }
+          models: interpolateEnvVarsInValue(parsed.models) as Record<
+            string,
+            unknown
+          >,
+        }
         : {}),
       ...(parsed.searchProviders
         ? {
-            searchProviders: Object.fromEntries(
-              Object.entries(
-                parsed.searchProviders as Record<string, string>,
-              ).map(([k, v]) => [
-                k,
-                typeof v === 'string' ? interpolateEnvVars(v) : v,
-              ]),
-            ),
-          }
+          searchProviders: Object.fromEntries(
+            Object.entries(
+              parsed.searchProviders as Record<string, string>,
+            ).map(([k, v]) => [
+              k,
+              typeof v === 'string' ? interpolateEnvVars(v) : v,
+            ]),
+          ),
+        }
         : {}),
     }
 
-    const result = codefluffConfigSchema.parse(interpolated)
+    const result = codestackConfigSchema.parse(interpolated)
 
     _cachedConfig = result
     return result
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.warn(
-        `[codefluff] Invalid config at ${configPath}:\n${error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n')}`,
+        `[codestack] Invalid config at ${configPath}:\n${error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n')}`,
       )
     } else {
       console.warn(
-        `[codefluff] Failed to parse config at ${configPath}: ${error instanceof Error ? error.message : String(error)}`,
+        `[codestack] Failed to parse config at ${configPath}: ${error instanceof Error ? error.message : String(error)}`,
       )
     }
     _cachedConfig = {}
@@ -211,7 +211,7 @@ export function loadCodefluffConfig(): CodefluffConfig {
 }
 
 /** Clear cached config — useful for tests */
-export function resetCodefluffConfigCache(): void {
+export function resetCodestackConfigCache(): void {
   _cachedConfig = null
 }
 
@@ -220,25 +220,25 @@ export function resetCodefluffConfigCache(): void {
 // ============================================================================
 
 export function getConfiguredKeys(): Record<string, ProviderKeyConfig> {
-  const config = loadCodefluffConfig()
+  const config = loadCodestackConfig()
   return (config.keys ?? {}) as Record<string, ProviderKeyConfig>
 }
 
 export function getDefaultMode(): CostMode {
-  const config = loadCodefluffConfig()
+  const config = loadCodestackConfig()
   const mode = config.defaultMode ?? 'normal'
   return costModes.includes(mode as CostMode) ? (mode as CostMode) : 'normal'
 }
 
 /** Returns searchProviders as a Record<string, string> for the agent-runtime consumer */
 export function getSearchProviders(): Record<string, string> {
-  const config = loadCodefluffConfig()
+  const config = loadCodestackConfig()
   return config.searchProviders ?? {}
 }
 
 /** Returns model-specific configuration */
 export function getModelConfig(model: string): ModelConfig | undefined {
-  const config = loadCodefluffConfig()
+  const config = loadCodestackConfig()
   return config.models?.[model]
 }
 
