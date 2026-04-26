@@ -5,7 +5,6 @@
     "baseUrl": ".", // Bun & editors see the aliases
     "paths": {
       "@codebuff/common/*": ["./common/src/*"],
-      "@codebuff/web/*": ["./web/src/*"],
       "@codebuff/evals/*": ["./evals/*"],
       "@codebuff/sdk": ["./sdk/src/index.ts"],
       "@codebuff/sdk/*": ["./sdk/*"],
@@ -18,10 +17,8 @@
   "files": [],
   "references": [
     { "path": "./common" },
-    { "path": "./web" },
     { "path": "./evals" },
     { "path": "./sdk" },
-    { "path": "./packages/billing" },
     { "path": "./packages/bigquery" },
     { "path": "./packages/internal" },
     { "path": "./packages/code-map" },

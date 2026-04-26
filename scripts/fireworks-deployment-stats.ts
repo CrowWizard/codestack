@@ -16,7 +16,7 @@
  *   FIREWORKS_ACCOUNT_ID (optional) — defaults to the account in fireworks-config.ts
  */
 
-import { FIREWORKS_ACCOUNT_ID } from '../web/src/llm-api/fireworks-config'
+import { FIREWORKS_ACCOUNT_ID } from '@codebuff/common/llm-api/fireworks-config'
 
 const API_BASE = 'https://api.fireworks.ai/v1'
 

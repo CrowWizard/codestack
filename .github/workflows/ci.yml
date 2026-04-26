@@ -51,23 +51,8 @@ jobs:
           echo "NEXT_PUBLIC_CB_ENVIRONMENT=test" >> $GITHUB_ENV
           echo "CODEBUFF_GITHUB_TOKEN=${{ secrets.CODEBUFF_GITHUB_TOKEN }}" >> $GITHUB_ENV
 
-      - name: Typecheck and Build web in parallel
-        run: |
-          bun -e "
-          const { spawn } = require('child_process');
-          function runCommand(command, args, options = {}) {
-            return new Promise((resolve, reject) => {
-              const child = spawn(command, args, { stdio: 'inherit', ...options });
-              child.on('close', (code) => code === 0 ? resolve() : reject(new Error('Command failed with exit code ' + code)));
-              child.on('error', reject);
-            });
-          }
-          Promise.all([
-            runCommand('bun', ['run', 'typecheck']),
-            runCommand('bun', ['run', 'build'], { cwd: 'web' })
-          ]).then(() => console.log('✅ Both typecheck and web build completed successfully!'))
-          .catch(error => { console.error('❌ One or more commands failed:', error.message); process.exit(1); });
-          "
+      - name: Typecheck
+        run: bun run typecheck
 
       # - name: Build npm-app
       #   run: cd npm-app && bun run build
@@ -92,7 +77,6 @@ jobs:
             packages/billing,
             packages/internal,
             sdk,
-            web,
           ]
     name: test-${{ matrix.package }}
     runs-on: ubuntu-latest
@@ -153,14 +137,6 @@ jobs:
               else
                 echo "No regular tests found in .agents"
               fi
-            elif [ "${{ matrix.package }}" = "web" ]; then
-              # Use bun test directly to pick up bunfig.toml preloads for Request global
-              TEST_FILES=$(find src -name '*.test.ts' ! -name '*.integration.test.ts' ! -path 'src/__tests__/e2e/*' 2>/dev/null | sort | tr '\n' ' ')
-              if [ -n "$TEST_FILES" ]; then
-                bun test $TEST_FILES
-              else
-                echo "No tests found in web"
-              fi
             else
               # Run all non-integration tests in a single bun test invocation
               # This avoids xargs exit code issues with orphaned child processes
@@ -189,7 +165,6 @@ jobs:
             common,
             packages/agent-runtime,
             sdk,
-            web,
           ]
     name: test-integration-${{ matrix.package }}
     runs-on: ubuntu-latest
